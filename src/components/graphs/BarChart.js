@@ -1,7 +1,7 @@
 import React from "react";
 import { ResponsiveBar } from "@nivo/bar";
 
-export default function BarChart({ data, keys, group }) {
+export default function BarChart({ data, keys, group, layout }) {
   return (
     <>
       <ResponsiveBar
@@ -9,6 +9,7 @@ export default function BarChart({ data, keys, group }) {
         keys={keys}
         indexBy="label"
         groupMode={group ? "grouped" : undefined}
+        layout={layout ? "horizontal" : "vertical"}
         margin={{ top: 30, right: 130, bottom: 50, left: 60 }}
         padding={0.3}
         colors={["#91f2ff", "#ffa1a1"]}

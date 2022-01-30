@@ -10,6 +10,7 @@ import { bardata } from "../data/bardata";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "../styles.css";
 import openinterest from "../data/openInterest.json";
+import btcVolume from "../data/btcVolume.json";
 
 // Handles the responsive nature of the grid
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -27,6 +28,42 @@ let shapedData = Object.keys(openData).map(function (key) {
   };
 });
 const sol = "solana";
+
+const volume7 = Object.values(btcVolume).reduce(
+  (acc, curr) => (acc = acc + curr.vol7d),
+  0
+);
+const volume24 = Object.values(btcVolume).reduce(
+  (acc, curr) => (acc = acc + curr.vol24h),
+  0
+);
+const trades7 = Object.values(btcVolume).reduce(
+  (acc, curr) => (acc = acc + curr.trades7d),
+  0
+);
+const trades24 = Object.values(btcVolume).reduce(
+  (acc, curr) => (acc = acc + curr.trades24h),
+  0
+);
+const tvl = Object.values(btcVolume).reduce(
+  (acc, curr) => (acc = acc + curr.tvlUsd),
+  0
+);
+console.log(volume7);
+console.log(volume24);
+console.log(trades7);
+console.log(trades24);
+console.log(tvl);
+
+const dataVolume = [
+  { label: "24hr", volume: Math.floor(volume24) },
+  { label: "7d", volume: Math.floor(volume7) },
+];
+
+const dataTrades = [
+  { label: "24hr", trades: trades24 },
+  { label: "7d", trades: trades7 },
+];
 
 export default function App() {
   const [solo, setSolo] = useState<any>();
@@ -63,13 +100,10 @@ export default function App() {
   console.log(historicData);
   return (
     <div>
-      <div className="w-full p-5">
-        <div className="flex justify-between items-center bg-gradient-to-r from-purple-500 to-pink-500 mb-5  p-5 shadow-lg rounded-lg">
-          <h1 className="text-2xl text-red-50 ">PsyOptions Dashboard</h1>
-        </div>
-        <div className="btn hover:cursor-pointer mb-3">BTC/USDC</div>
+      <div className="w-full pb-5 px-5 ">
+        <div className="btn hover:cursor-pointer mb-3 px-5">BTC/USDC</div>
         <ResponsiveGridLayout
-          className=" mx-8"
+          className="mx-8"
           breakpoints={breakpoints}
           cols={cols}
         >
@@ -89,8 +123,13 @@ export default function App() {
             key="2"
             data-grid={{ x: 1, y: 0, w: 1, h: 2, static: true }}
           >
-            <h3 className="grid-header">24h Metrics</h3>
-            <BarChart data={shapedData} keys={optionBars} group={true} />
+            <h3 className="grid-header">Volume Metrics</h3>
+            <BarChart
+              data={dataVolume}
+              keys={["volume"]}
+              group={null}
+              layout="horizontal"
+            />
           </div>
 
           <div
@@ -98,8 +137,13 @@ export default function App() {
             key="3"
             data-grid={{ x: 2, y: 0, w: 1, h: 2, static: true }}
           >
-            <h3 className="grid-header">7D Metrics</h3>
-            <BarChart data={shapedData} keys={optionBars} group={true} />
+            <h3 className="grid-header">Trade Metrics</h3>
+            <BarChart
+              data={dataTrades}
+              keys={["trades"]}
+              group={null}
+              layout="horizontal"
+            />
           </div>
 
           <div
@@ -108,7 +152,7 @@ export default function App() {
             data-grid={{ x: 3, y: 0, w: 1, h: 2, static: true }}
           >
             <h3 className="grid-header">Call/Put Ratio</h3>
-            <PieChart />
+            <PieChart data />
           </div>
 
           <div
@@ -117,7 +161,7 @@ export default function App() {
             data-grid={{ x: 0, y: 2, w: 2, h: 3, static: true }}
           >
             <h3 className="grid-header">Open Interest by Strike Price</h3>
-            <BarChart data={shapedData} keys={optionBars} group={true} />
+            <BarChart data={shapedData} keys={optionBars} group={true} layout />
           </div>
 
           <div
@@ -134,7 +178,7 @@ export default function App() {
             data-grid={{ x: 0, y: 5, w: 1, h: 2 }}
           >
             <h3 className="grid-header">Open Interest by Expiry</h3>
-            <BarChart data={bardata} keys={["calls"]} group={null} />
+            <BarChart data={bardata} keys={["calls"]} group={null} layout />
           </div>
           <div
             className="grid-cell"

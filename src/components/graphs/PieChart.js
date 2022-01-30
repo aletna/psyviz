@@ -6,35 +6,35 @@ const dataExample = [
     id: "calls",
     label: "calls",
     value: 42,
-    color: "hsl(65, 70%, 50%)"
+    color: "hsl(65, 70%, 50%)",
   },
   {
     id: "puts",
     label: "puts",
     value: 58,
-    color: "hsl(199, 70%, 50%)"
-  }
+    color: "hsl(199, 70%, 50%)",
+  },
 ];
 
-const PieChart = () => (
+const PieChart = ({ data /* see data tab */ }) => (
   <ResponsivePie
     data={dataExample}
     margin={{
       top: 40,
       right: 80,
       bottom: 80,
-      left: 80
+      left: 80,
     }}
     innerRadius={0.5}
     padAngle={0.7}
     cornerRadius={3}
     colors={{
-      scheme: "nivo"
+      scheme: "nivo",
     }}
     borderWidth={1}
     borderColor={{
       from: "color",
-      modifiers: [["darker", 0.2]]
+      modifiers: [["darker", 0.2]],
     }}
     radialLabelsSkipAngle={10}
     radialLabelsTextXOffset={6}
@@ -44,7 +44,7 @@ const PieChart = () => (
     radialLabelsLinkHorizontalLength={24}
     radialLabelsLinkStrokeWidth={1}
     radialLabelsLinkColor={{
-      from: "color"
+      from: "color",
     }}
     slicesLabelsSkipAngle={10}
     slicesLabelsTextColor="#333333"
@@ -65,12 +65,13 @@ const PieChart = () => (
           {
             on: "hover",
             style: {
-              itemTextColor: "#000"
-            }
-          }
-        ]
-      }
+              itemTextColor: "#000",
+            },
+          },
+        ],
+      },
     ]}
   />
 );
-export default PieChart
+
+export default PieChart;
