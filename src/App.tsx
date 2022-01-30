@@ -16,6 +16,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import Home from "./views/Home";
 import { endpoint } from "./utils/global";
+import Dashboard from "./views/Dashboard";
 
 function App() {
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
@@ -41,7 +42,8 @@ function App() {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets}>
-        <Home />
+        {/* <Home />  */}
+        <Dashboard />
       </WalletProvider>
     </ConnectionProvider>
   );

@@ -61,12 +61,12 @@ export default function Home() {
       ))} */}
 
       {/* OPEN INTEREST */}
-      {/* {program && optionMarkets && (
-        <OpenInterest optionMarkets={optionMarkets} />
-      )} */}
       {program && optionMarkets && (
-        <Volume optionMarkets={optionMarkets} program={program} />
+        <OpenInterest optionMarkets={optionMarkets} />
       )}
+      {/* {program && optionMarkets && (
+        <Volume optionMarkets={optionMarkets} program={program} />
+      )} */}
     </div>
   );
 }
