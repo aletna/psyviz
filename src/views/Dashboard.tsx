@@ -66,20 +66,21 @@ const dataTrades = [
 ];
 
 export default function App() {
-  const [solo, setSolo] = useState<any>();
+  const [solanaPrice, setSolanaPrice] = useState<any>();
   const [historicData, setHistoricData] = useState<any>();
-  const tst = async () => {
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${sol}&vs_currencies=usd`
-    );
-    const json = await res.json();
-    setSolo(json.solana.usd);
-  };
-
   useEffect(() => {
-    tst();
+    async function fetchSolanaPrice() {
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${sol}&vs_currencies=usd`
+      );
+      if (res) {
+        const json = await res.json();
+        setSolanaPrice(json.solana.usd);
+      }
+    }
+    fetchSolanaPrice();
     const interval = setInterval(() => {
-      tst();
+      fetchSolanaPrice();
     }, 100000);
 
     return () => clearInterval(interval);
@@ -112,7 +113,7 @@ export default function App() {
             key="1"
             data-grid={{ x: 0, y: 0, w: 1, h: 2, static: true }}
           >
-            <h3 className="grid-header">Sol Price: ${solo}</h3>
+            <h3 className="grid-header">Sol Price: ${solanaPrice}</h3>
             {historicData ? (
               <LineChart data={[historicData]} legend="Day" />
             ) : null}
