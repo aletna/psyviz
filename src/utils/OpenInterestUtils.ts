@@ -1,4 +1,4 @@
-import { Program, ProgramAccount } from "@project-serum/anchor";
+import { ProgramAccount } from "@project-serum/anchor";
 import { Idl, IdlTypeDef } from "@project-serum/anchor/dist/cjs/idl";
 import {
   IdlTypes,
@@ -7,7 +7,6 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import {
   getParsedMarketsGroupedByPair,
-  getParsedOptionMarket,
 } from "./psyOptionMarketUtils";
 import { getAccountInfo, getProgramAccounts } from "./solanaUtils";
 

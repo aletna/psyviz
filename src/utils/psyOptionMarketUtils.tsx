@@ -1,4 +1,3 @@
-import { OptionMarket } from "@mithraic-labs/psy-american";
 import { Program, ProgramAccount } from "@project-serum/anchor";
 import { Idl, IdlTypeDef } from "@project-serum/anchor/dist/cjs/idl";
 import {

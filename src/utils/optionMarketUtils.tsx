@@ -1,13 +1,10 @@
-import { OptionMarket } from "@mithraic-labs/psy-american";
+
 import { ProgramAccount } from "@project-serum/anchor";
 import { Idl, IdlTypeDef } from "@project-serum/anchor/dist/cjs/idl";
 import {
   IdlTypes,
   TypeDef,
 } from "@project-serum/anchor/dist/cjs/program/namespace/types";
-import { PublicKey } from "@solana/web3.js";
-import moment from "moment";
-import { connection } from "./global";
 import { getTokenBalance, getTokenData } from "./tokenUtls";
 
 export const parseOptionMarket = async (

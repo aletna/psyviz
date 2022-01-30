@@ -1,5 +1,4 @@
 import * as anchor from "@project-serum/anchor";
-import { TokenListProvider } from "@solana/spl-token-registry";
 export const endpoint: string = "https://ssc-dao.genesysgo.net";
 export const connection: anchor.web3.Connection = new anchor.web3.Connection(
   endpoint

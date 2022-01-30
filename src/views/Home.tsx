@@ -6,14 +6,9 @@ import {
 } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { useEffect, useState } from "react";
 import OpenInterest from "../components/OpenInterest";
-import OptionMarket from "../components/OptionMarket";
-import Volume from "../components/Volume";
 import { useProgram } from "../hooks/useProgram";
 import {
   getAllOpenPsyOptionMarkets,
-  getOptionMintHolders,
-  getOptionMintInfo,
-  getSerumMarket,
 } from "../utils/psyOptionMarketUtils";
 import { getTokenDict } from "../utils/tokenUtls";
 
