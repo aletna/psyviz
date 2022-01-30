@@ -1,21 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
 import { useEffect, useState } from "react";
-import {
-  getOptionMintHolders,
-  getOptionMintInfo,
-  getParsedOptionMarket,
-  getSerumMarket,
-} from "../utils/psyOptionMarketUtils";
-import { getSerumMarketData } from "../utils/serumUtils";
-
-import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider,
-  useQuery,
-  gql,
-} from "@apollo/client";
-import SerumQueries from "./SerumQueries";
 import { getOpenInterest } from "../utils/OpenInterestUtils";
 
 export default function OptionMarket(props: any) {

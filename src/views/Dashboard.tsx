@@ -62,13 +62,14 @@ export default function App() {
   }, []);
   console.log(historicData);
   return (
-    <div >
-      <div className="w-full">
-        <div className="flex  bg-gradient-to-r from-purple-500 to-pink-500 m-5 p-5 shadow-lg rounded-lg">
-          <h1 className="text-2xl text-red-50">PsyOptions Dashboard</h1>
+    <div>
+      <div className="w-full p-5">
+        <div className="flex justify-between items-center bg-gradient-to-r from-purple-500 to-pink-500 mb-5  p-5 shadow-lg rounded-lg">
+          <h1 className="text-2xl text-red-50 ">PsyOptions Dashboard</h1>
         </div>
+        <div className="btn hover:cursor-pointer mb-3">BTC/USDC</div>
         <ResponsiveGridLayout
-          className="my-5 mx-8"
+          className=" mx-8"
           breakpoints={breakpoints}
           cols={cols}
         >
@@ -141,7 +142,7 @@ export default function App() {
             data-grid={{ x: 2, y: 5, w: 3, h: 2 }}
           >
             <h3 className="grid-header">Historical Volatility</h3>
-            <LineChart data={linedata} legend = ""/>
+            <LineChart data={linedata} legend="" />
           </div>
         </ResponsiveGridLayout>
       </div>

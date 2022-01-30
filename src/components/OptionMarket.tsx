@@ -6,16 +6,10 @@ import {
   getParsedOptionMarket,
   getSerumMarket,
 } from "../utils/psyOptionMarketUtils";
-import { getSerumMarketData } from "../utils/serumUtils";
 
 import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider,
-  useQuery,
   gql,
 } from "@apollo/client";
-import SerumQueries from "./SerumQueries";
 
 export default function OptionMarket(props: any) {
   const [optionMarket, setOptionMarket] = useState<any>();
@@ -143,9 +137,6 @@ export default function OptionMarket(props: any) {
         <div>Unique All Time Holders: {optionMintHolders.length}</div>
       ) : (
         <div>Unique All Time Holders: None</div>
-      )}
-      {serumgql && (
-        <SerumQueries handleSerumData={handleSerumData} serumgql={serumgql} />
       )}
       {GQLData && (
         <div>
