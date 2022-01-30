@@ -62,11 +62,11 @@ export default function App() {
   }, []);
   console.log(historicData);
   return (
-    <div className="App">
+    <div >
       <div className="w-full">
-        <header className="flex bg-gray-900 m-5 p-5 shadow-lg rounded-lg">
-          <h1 className="text-2xl text-teal-400">PsyOptions Dashboard</h1>
-        </header>
+        <div className="flex bg-gray-900 m-5 p-5 shadow-lg rounded-lg">
+          <h1 className="text-2xl text-red-50">PsyOptions Dashboard</h1>
+        </div>
         <ResponsiveGridLayout
           className="my-5 mx-8"
           breakpoints={breakpoints}
