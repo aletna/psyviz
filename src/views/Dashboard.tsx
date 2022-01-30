@@ -64,7 +64,7 @@ export default function App() {
   return (
     <div >
       <div className="w-full">
-        <div className="flex bg-gray-900 m-5 p-5 shadow-lg rounded-lg">
+        <div className="flex  bg-gradient-to-r from-purple-500 to-pink-500 m-5 p-5 shadow-lg rounded-lg">
           <h1 className="text-2xl text-red-50">PsyOptions Dashboard</h1>
         </div>
         <ResponsiveGridLayout
