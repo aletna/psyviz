@@ -13,7 +13,7 @@ export default function ActivePairDropdown(props: any) {
         className="btn font-bold text-md dropdown-end hover:cursor-pointer px-5"
         onClick={() => setShowDropdown(!showDropdown)}
       >
-        {props.activePair}
+        {props.activePair === "soETH/USDC" ? "ETH/USDC" : props.activePair}
       </div>
 
       {showDropdown && (

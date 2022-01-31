@@ -94,38 +94,38 @@ const _getSerumMarketData = async (market: Market) => {
 
   // circular buffer (FIFO queue)
   //   event queue..
-  const eventQueue = await market.loadEventQueue(connection);
+  // const eventQueue = await market.loadEventQueue(connection);
 
-  const asks = await market.loadAsks(connection);
-  const bids = await market.loadBids(connection);
+  // const fills = await market.loadFills(connection, 20);
 
-  const fills = await market.loadFills(connection, 20);
+  // const newFills = [];
+  // if (fills.length > 0) {
+  //   for (const fill of fills) {
+  //     const f = fill;
+  //     f.nativeQuantityPaid = f.nativeQuantityPaid.toString();
+  //     f.nativeFeeOrRebate = f.nativeFeeOrRebate.toString();
+  //     f.nativeQuantityReleased = f.nativeQuantityReleased.toString();
+  //     newFills.push(f);
+  //   }
+  // }
 
-  const newFills = [];
-  if (fills.length > 0) {
-    for (const fill of fills) {
-      const f = fill;
-      f.nativeQuantityPaid = f.nativeQuantityPaid.toString();
-      f.nativeFeeOrRebate = f.nativeFeeOrRebate.toString();
-      f.nativeQuantityReleased = f.nativeQuantityReleased.toString();
-      newFills.push(f);
-    }
-  }
-
+  // const asks = await market.loadAsks(connection);
+  // const bids = await market.loadBids(connection);
   // Full orderbook data
-  const orderBook = await getOrderBookData(asks, bids);
+  // const orderBook = await getOrderBookData(asks, bids);
 
   return {
     baseMintAddress,
     quoteMintAddress,
     asksAddress,
     bidsAddress,
-    eventQueue,
-    orderBook,
-    fills: newFills,
+    // eventQueue,
+    // orderBook,
+    // fills: newFills,
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getOrderBookData = async (asks: Orderbook, bids: Orderbook) => {
   const orderBook = [];
   //@ts-ignore
@@ -226,8 +226,6 @@ export const fetchCurrentSerumMarkets = async (
   programId: any,
   activePair: any
 ) => {
-  console.log("hhi");
-  
   let _serumData: any = {};
   const splitPair = activePair.split("/");
   const revPair = splitPair[1] + "/" + splitPair[0];

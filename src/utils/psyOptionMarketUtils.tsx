@@ -80,8 +80,6 @@ export const getParsedOptionMarket = async (
   optionMarket: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>
 ) => {
   const _optionMarket = await parseOptionMarket(optionMarket);
-  console.log(_optionMarket);
-  
   return _optionMarket;
 };
 

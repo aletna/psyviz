@@ -45,12 +45,6 @@ export const parseOptionMarket = async (
         // quoteAssetPoolPKBalance,
         // underlyingAssetPoolPKBalance,
       ] = await Promise.all(promises.map((fn) => fn[0](fn[1])));
-      console.log(
-        quoteAssetMintString,
-        underlyingAssetMintString,
-        quoteAssetMint.symbol,
-        underlyingAssetMint.symbol
-      );
     } else {
       quoteAssetMint = quoteAssetMintString;
       underlyingAssetMint = underlyingAssetMintString;

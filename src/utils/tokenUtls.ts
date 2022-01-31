@@ -15,12 +15,9 @@ export const getTokenDict = async () => {
 };
 
 export const getTokenData = async (mint: string) => {
-  console.log("gettting tokendata");
-  
   // fix so  it doesnt get called every time
 
   if (tokenDict[mint]) {
-    console.log("gettting tokendata LFGG");
     const tkn = tokenDict[mint];
     const name = tkn.name;
     const symbol = tkn.symbol;

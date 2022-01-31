@@ -63,8 +63,6 @@ const OptionMarketContextInit = ({ children }: Props) => {
 
   useEffect(() => {
     if (optionMarketContext.singlePairOptionMarkets) {
-      console.log("oooo");
-
       fetchSerumData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,8 +89,6 @@ const OptionMarketContextInit = ({ children }: Props) => {
       _optionMarketsByPair,
       "BTC/USDC"
     );
-    console.log(">>>>>>>", _singlePairOptionMarkets);
-
     if (_singlePairOptionMarkets) {
       optionMarketContext.updateSinglePairOptionMarkets(
         _singlePairOptionMarkets
@@ -114,8 +110,6 @@ const OptionMarketContextInit = ({ children }: Props) => {
       sm = {};
     }
     if (optionMarketContext.singlePairOptionMarkets && program) {
-      console.log("Sssasd");
-
       const _serumMarkets = await fetchCurrentSerumMarkets(
         sm,
         optionMarketContext.singlePairOptionMarkets,

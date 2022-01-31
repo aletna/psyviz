@@ -48,6 +48,8 @@ export default function App() {
   const [calendarData, setCalendarData] = useState<any>();
   const [biweeklyVolume, setBiweeklyVolume] = useState<any>();
   const [biweeklyTrades, setBiweeklyTrades] = useState<any>();
+  // const [orderBook, setOrderBook] = useState<any>();
+  const [serumLoadProgress, setSerumLoadProgress] = useState<any>({});
 
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
@@ -64,9 +66,8 @@ export default function App() {
 
   const optionMarketContext = useContext(OptionMarketContext);
   useEffect(() => {
-    console.log("mountedÎ");
     optionMarketContext.updateActivePair("");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Coingecko data
   useEffect(() => {
@@ -183,7 +184,6 @@ export default function App() {
         optionMarketContext.optionMarkets,
         pair
       );
-      console.log("SINGLE", _singlePairOptionMarkets);
 
       if (_singlePairOptionMarkets) {
         optionMarketContext.updateSinglePairOptionMarkets(
@@ -211,9 +211,54 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePair]);
 
+  // TODO: ORDERBOOKDATA
+  // useEffect(() => {
+  //   if (
+  //     optionMarketContext.serumMarkets &&
+  //     optionMarketContext.serumMarkets[activePair]
+  //   ) {
+  //     let asks = 0;
+  //     let buys = 0;
+  //     let filteredOrderBook = [];
+  //     for (const market in optionMarketContext.serumMarkets[activePair]) {
+  //       const _orderBook =
+  //         optionMarketContext.serumMarkets[activePair][market].orderBook;
+  //       if (_orderBook && _orderBook.length > 0) {
+  //         for (const ob of _orderBook) {
+  //           console.log(ob);
+  //           console.log("");
+
+  //           console.log("Price Lots:", ob.priceLots.toString());
+  //           console.log("Price:", ob.price);
+  //           console.log("Size:", ob.size);
+  //           console.log("Side:", ob.side);
+  //           console.log("");
+  //           filteredOrderBook.push({
+  //             priceLots: parseInt(ob.priceLots.toString()),
+  //             price: ob.price,
+  //             size: ob.size,
+  //             side: ob.side,
+  //           });
+
+  //           // if (ob.side == "buy") {
+  //           // } else {
+  //           //   console.log(ob.side);
+  //           // }
+  //           setOrderBook(filteredOrderBook);
+  //         }
+  //       }
+  //     }
+  //   }
+  // }, [optionMarketContext.serumMarkets]);
+
+  // useEffect(() => {
+  //   if (orderBook) {
+  //     console.log("THEEEEE order book:", orderBook);
+  //   }
+  // }, [orderBook]);
+
   useEffect(() => {
     if (dataVolume && VMLoading) {
-      console.log("DATA", dataVolume);
       setVMLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -221,7 +266,6 @@ export default function App() {
 
   useEffect(() => {
     if (dataTrades && TMLoading) {
-      console.log("DATA", dataTrades);
       setTMLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -229,7 +273,6 @@ export default function App() {
 
   useEffect(() => {
     if (calendarData && CDLoading) {
-      console.log("DATA", calendarData);
       setCDLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,7 +280,6 @@ export default function App() {
 
   useEffect(() => {
     if (biweeklyVolume && DVLoading) {
-      console.log("DATA", biweeklyVolume);
       setDVLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -245,7 +287,6 @@ export default function App() {
 
   useEffect(() => {
     if (biweeklyTrades && DTLoading) {
-      console.log("DATA", biweeklyTrades);
       setDTLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,16 +327,8 @@ export default function App() {
         }
       }
       if (optionMarketContext.activePair !== activePair) {
-        console.log("eysyesyeys", optionMarketContext.serumMarkets);
         optionMarketContext.updateActivePair(activePair);
         getDailySerumStatsAndVol(serumMarketsToGetVolumeFrom);
-      } else {
-        console.log(
-          "noinonon",
-          optionMarketContext.serumMarkets,
-          activePair,
-          optionMarketContext.activePair
-        );
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -304,9 +337,10 @@ export default function App() {
   const getDailySerumStatsAndVol = async (addresses: string[]) => {
     const aggregatedStats: any = {};
     const aggregatedVolume: any[] = [];
+    const n = addresses.length;
+    setSerumLoadProgress({ n, curr: 1 });
     for (let i = 0; i < addresses.length; i += 1) {
-      console.log(i, "start");
-
+      setSerumLoadProgress({ n, curr: i + 1 });
       const data = await getDailyStatsAndVolume(addresses[i]);
       if (data.stats) {
         aggregatedStats[addresses[i]] = data.stats;
@@ -317,16 +351,13 @@ export default function App() {
       // if (i > 0 && i % 8 === 0) {
       //   await delay(1000);
       // }
-      console.log(i, "data", data);
     }
-
+    setSerumLoadProgress({});
     getDailySerumStats(aggregatedStats);
     getBiweekVol(aggregatedVolume);
   };
 
   const getDailySerumStats = async (aggregatedStats: any) => {
-    console.log("hjel;loo");
-
     const volume7: any = Object.values(aggregatedStats).reduce(
       (acc, curr: any) => (acc = acc + curr.vol7dUsd),
       0
@@ -353,8 +384,6 @@ export default function App() {
       { label: "24hr", trades: trades24 },
       { label: "7d", trades: trades7 },
     ];
-
-    console.log(_dataVolume);
 
     setDataVolume(_dataVolume);
     setDataTrades(_dataTrades);
@@ -428,6 +457,17 @@ export default function App() {
           setActivePair={setActivePair}
         />
       </div>
+      {serumLoadProgress.curr && (
+        <div className="w-full ">
+          <div className="px-7 mb-3 artboard">
+            <progress
+              className="progress progress-secondary"
+              value={(serumLoadProgress.curr / serumLoadProgress.n) * 100}
+              max="100"
+            ></progress>
+          </div>
+        </div>
+      )}
       <div className="w-full pb-5 px-5 ">
         <ResponsiveGridLayout
           className=""
@@ -597,6 +637,37 @@ export default function App() {
           </div>
           )
         </ResponsiveGridLayout>
+        {/* <div className="py-5">
+          <h3 className="grid-header">OpenOrders</h3>
+          <div className="flex">
+            <div>
+              {orderBook &&
+                orderBook.map((order: any, key: number) => {
+                  if (order.side === "buy") {
+                    return (
+                      <div key={key}>
+                        {order.price} - {order.size}
+                      </div>
+                    );
+                  }
+                  return <></>;
+                })}
+            </div>
+            <div>
+              {orderBook &&
+                orderBook.map((order: any, key: number) => {
+                  if (order.side === "sell") {
+                    return (
+                      <div key={key}>
+                        {order.price} - {order.size}
+                      </div>
+                    );
+                  }
+                  return <></>;
+                })}
+            </div>
+          </div>
+        </div> */}
       </div>
     </div>
   );
