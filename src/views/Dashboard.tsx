@@ -368,7 +368,7 @@ export default function App() {
         </div>
 
         <ResponsiveGridLayout
-          className="mx-8"
+          className=""
           breakpoints={breakpoints}
           cols={cols}
         >

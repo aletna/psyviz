@@ -151,15 +151,24 @@ export const getOpenInterestFromPair = async (
 
 const getStrikePriceAndTokenAmount = async (market: any) => {
   let strikePrice;
+  console.log(
+    market.underlyingAmountPerContract.toString(),
+    market.quoteAmountPerContract.toString()
+  );
+
   if (market.quoteAssetMint && market.underlyingAssetMint) {
     if (market.quoteAssetMint.symbol === "USDC") {
-      strikePrice = market.quoteAmountPerContract;
+      strikePrice =
+        parseInt(market.quoteAmountPerContract.toString()) /
+        (parseInt(market.underlyingAmountPerContract.toString()) / 10000);
       // GET CIRCULATION OF TOKEN
       const tokens = await getTokenCirculation(market);
 
       return { strikePrice, puts: tokens };
     } else if (market.underlyingAssetMint.symbol === "USDC") {
-      strikePrice = market.underlyingAmountPerContract;
+      strikePrice =
+        parseInt(market.underlyingAmountPerContract.toString()) /
+        (parseInt(market.quoteAmountPerContract.toString()) / 10000);
       // GET CIRCULATION OF TOKEN
       const tokens = await getTokenCirculation(market);
 
