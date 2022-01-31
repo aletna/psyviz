@@ -162,57 +162,22 @@ const getOrderBookData = async (asks: Orderbook, bids: Orderbook) => {
   return orderBook;
 };
 
-export const getDailyStats = async (address: string) => {
+export const getDailyStatsAndVolume = async (address: string) => {
   const data = JSON.stringify({
     query: `
     query {
         dailyStats(markets: "${address}") {
-            stats {
-                vol1hUsd
-                vol24hUsd
-                vol7dUsd
-                trades1h
-                trades24h
-                trades7d
-                tvlUsd
-                au1h
-                au24h
-                au7d
-            }
-        }
-    } `,
-    variables: `{
-          "address": "${address}"
-        }`,
-  });
-
-  const response = await fetch("https://api.serum.markets/", {
-    method: "post",
-    body: data,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      // 'Content-Length': data.length,
-      // Authorization: 'Apikey ' + process.env.STEPZEN_API_KEY,
-      // 'User-Agent': 'Node',
-    },
-  });
-
-  const json = await response.json();
-  console.log(json, address);
-  return json;
-};
-
-export const getBiweekVolume = async (address: string) => {
-  const data = JSON.stringify({
-    query: `
-    query {
-        dailyStats(markets: "${address}") {
-            volume {
-              volume
-              trades
-              interval
-            }
+          stats {
+            vol7dUsd
+            vol24hUsd
+            trades24h
+            trades7d
+          }
+          volume {
+            volume
+            trades
+            interval
+          }
         }
     } `,
     variables: `{
@@ -232,10 +197,28 @@ export const getBiweekVolume = async (address: string) => {
   if (response) {
     json = await response.json();
   }
-  if (json.data && json.data.dailyStats && json.data.dailyStats.volume) {
-    return json.data.dailyStats.volume;
-  }
+  let allStats: any = {};
 
+  if (json.data && json.data.dailyStats) {
+    if (json.data.dailyStats.volume) {
+      allStats["volume"] = json.data.dailyStats.volume;
+    }
+    if (json.data.dailyStats.stats) {
+      console.log(json.data.dailyStats.stats.vol24hUsd);
+
+      let stats = {
+        ...json.data.dailyStats.stats,
+        vol7dUsd: json.data.dailyStats.stats.vol7dUsd
+          ? parseInt(json.data.dailyStats.stats.vol7dUsd) / 10 ** 5
+          : 0,
+        vol24hUsd: json.data.dailyStats.stats.vol24hUsd
+          ? parseInt(json.data.dailyStats.stats.vol24hUsd) / 10 ** 5
+          : 0,
+      };
+      allStats["stats"] = stats;
+    }
+    return allStats;
+  }
   return;
 };
 
@@ -246,7 +229,7 @@ export const fetchCurrentSerumMarkets = async (
   activePair: any
 ) => {
   console.log("heeeeeelop");
-  
+
   let _serumData: any = {};
   const splitPair = activePair.split("/");
   const revPair = splitPair[1] + "/" + splitPair[0];
@@ -275,14 +258,14 @@ export const fetchCurrentSerumMarkets = async (
           _serumData[sd.optionMarketAddress] = sd;
         }
       }
-      console.log("aaaaaaa",_serumData);
-      
+      console.log("aaaaaaa", _serumData);
+
       let _serumMarkets = {
         ...currentSerumMarkets,
         [activePair]: _serumData,
       };
-      console.log("aasadsa",_serumMarkets);
-      
+      console.log("aasadsa", _serumMarkets);
+
       console.log(_serumMarkets);
       return _serumMarkets;
     }

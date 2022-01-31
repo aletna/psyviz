@@ -6,8 +6,6 @@ import PieChart from "../components/graphs/PieChart";
 import retrieveHistory from "../data/historicaldata";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "../styles.css";
-// import openinterest from "../data/openInterest.json";
-import btcVolume from "../data/btcVolume.json";
 import { OptionMarketContext } from "../components/context/OptionMarketContextInit";
 import {
   CurrencyPairs,
@@ -21,7 +19,10 @@ import {
 } from "../utils/OpenInterestUtils";
 import { combinePairDict } from "../utils/optionMarketUtils";
 import ActivePairDropdown from "../components/ActivePairDropdown";
-import { fetchCurrentSerumMarkets, getBiweekVolume } from "../utils/serumUtils";
+import {
+  fetchCurrentSerumMarkets,
+  getDailyStatsAndVolume,
+} from "../utils/serumUtils";
 import { useProgram } from "../hooks/useProgram";
 
 // Handles the responsive nature of the grid
@@ -32,37 +33,6 @@ const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 320 };
 const cols = { lg: 4, md: 4, sm: 1, xs: 1, xxs: 1 };
 const optionBars = ["calls", "puts"];
 
-const volume7 = Object.values(btcVolume).reduce(
-  (acc, curr) => (acc = acc + curr.vol7d),
-  0
-);
-const volume24 = Object.values(btcVolume).reduce(
-  (acc, curr) => (acc = acc + curr.vol24h),
-  0
-);
-const trades7 = Object.values(btcVolume).reduce(
-  (acc, curr) => (acc = acc + curr.trades7d),
-  0
-);
-const trades24 = Object.values(btcVolume).reduce(
-  (acc, curr) => (acc = acc + curr.trades24h),
-  0
-);
-// const tvl = Object.values(btcVolume).reduce(
-//   (acc, curr) => (acc = acc + curr.tvlUsd),
-//   0
-// );
-
-const dataVolume = [
-  { label: "24hr", volume: Math.floor(volume24) },
-  { label: "7d", volume: Math.floor(volume7) },
-];
-
-const dataTrades = [
-  { label: "24hr", trades: trades24 },
-  { label: "7d", trades: trades7 },
-];
-
 export default function App() {
   const [currencyPrice, setCurrencyPrice] = useState<any>();
   const [historicData, setHistoricData] = useState<any>();
@@ -70,6 +40,8 @@ export default function App() {
   const [expiryData, setExpiryData] = useState<any>();
   const [openCalls, setOpenCalls] = useState<any>();
   const [openPuts, setOpenPuts] = useState<any>();
+  const [dataVolume, setDataVolume] = useState<any>();
+  const [dataTrades, setDataTrades] = useState<any>();
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
   const [OIELoading, setOIELoading] = useState<boolean>(true);
@@ -77,6 +49,8 @@ export default function App() {
   const [OICLoading, setOICLoading] = useState<boolean>(true);
   const [DVLoading, setDVLoading] = useState<boolean>(true);
   const [DTLoading, setDTLoading] = useState<boolean>(true);
+  const [VMLoading, setVMLoading] = useState<boolean>(true);
+  const [TMLoading, setTMLoading] = useState<boolean>(true);
 
   const program = useProgram();
 
@@ -198,6 +172,8 @@ export default function App() {
       setOICLoading(true);
       setDVLoading(true);
       setDTLoading(true);
+      setVMLoading(true);
+      setTMLoading(true);
       let _singlePairOptionMarkets: any = combinePairDict(
         optionMarketContext.optionMarkets,
         pair
@@ -243,6 +219,8 @@ export default function App() {
       optionMarketContext.updateSerumMarkets(_serumMarkets);
       setDVLoading(false);
       setDTLoading(false);
+      setVMLoading(false);
+      setTMLoading(false);
     }
   };
 
@@ -253,8 +231,6 @@ export default function App() {
       optionMarketContext.serumMarkets[activePair]
     ) {
       let serumMarketsToGetVolumeFrom = [];
-      console.log("HEEEEE --------------", optionMarketContext.serumMarkets);
-      // get optionMarkets with same expiry
       for (const oms in optionMarketContext.optionMarkets) {
         for (const om of optionMarketContext.optionMarkets[oms]) {
           if (
@@ -269,21 +245,69 @@ export default function App() {
       }
       console.log(serumMarketsToGetVolumeFrom);
 
-      getBiweekVol(serumMarketsToGetVolumeFrom);
+      getDailySerumStatsAndVol(serumMarketsToGetVolumeFrom);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.serumMarkets]);
 
-  const getBiweekVol = async (addresses: string[]) => {
-    const aggregatedData: any[] = [];
+  const getDailySerumStatsAndVol = async (addresses: string[]) => {
+    const aggregatedStats: any = {};
+    const aggregatedVolume: any[] = [];
     for (const address of addresses) {
-      const data = await getBiweekVolume(address);
-      console.log(data);
-      data.forEach((d: any) => aggregatedData.push(d));
+      console.log(address);
+      const data = await getDailyStatsAndVolume(address);
+      if (data.stats) {
+        aggregatedStats[address] = data.stats;
+      }
+      if (data.volume) {
+        data.volume.forEach((d: any) => aggregatedVolume.push(d));
+      }
     }
 
-    const mergedWeekVolume = aggregatedData.reduce((a, c) => {
+    getDailySerumStats(aggregatedStats);
+    getBiweekVol(aggregatedVolume);
+  };
+
+  const getDailySerumStats = async (aggregatedStats: any) => {
+    const volume7: any = Object.values(aggregatedStats).reduce(
+      (acc, curr: any) => (acc = acc + curr.vol7dUsd),
+      0
+    );
+    const volume24: any = Object.values(aggregatedStats).reduce(
+      (acc, curr: any) => (acc = acc + curr.vol24hUsd),
+      0
+    );
+    const trades7 = Object.values(aggregatedStats).reduce(
+      (acc, curr: any) => (acc = acc + curr.trades7d),
+      0
+    );
+    const trades24 = Object.values(aggregatedStats).reduce(
+      (acc, curr: any) => (acc = acc + curr.trades24h),
+      0
+    );
+
+    console.log("volume7d", volume7);
+    const _dataVolume = [
+      { label: "24hr", volume: Math.floor(volume24) },
+      { label: "7d", volume: Math.floor(volume7) },
+    ];
+
+    const _dataTrades = [
+      { label: "24hr", trades: trades24 },
+      { label: "7d", trades: trades7 },
+    ];
+
+    setDataVolume(_dataVolume);
+    setDataTrades(_dataTrades);
+    console.log("merged", _dataVolume, _dataTrades);
+  };
+
+  const getBiweekVol = async (aggregatedVolume: any[]) => {
+    const mergedWeekVolume = aggregatedVolume.reduce((a, c) => {
+      console.log("A", a);
+
       let x = a.find((e: any) => e.interval === c.interval);
+      console.log("x", x);
       let obj = { ...c, volume: parseInt(c.volume) };
       if (!x) {
         a.push(Object.assign({}, obj));
@@ -370,12 +394,18 @@ export default function App() {
             data-grid={{ x: 1, y: 0, w: 1, h: 2, static: true }}
           >
             <h3 className="grid-header">Volume Metrics</h3>
-            <BarChart
-              data={dataVolume}
-              keys={["volume"]}
-              group={null}
-              layout="horizontal"
-            />
+            {dataVolume && !VMLoading ? (
+              <>
+                <BarChart
+                  data={dataVolume}
+                  keys={["volume"]}
+                  group={null}
+                  layout="horizontal"
+                />
+              </>
+            ) : (
+              <Skeleton />
+            )}
           </div>
           <div
             className="grid-cell"
@@ -383,12 +413,18 @@ export default function App() {
             data-grid={{ x: 2, y: 0, w: 1, h: 2, static: true }}
           >
             <h3 className="grid-header">Trade Metrics</h3>
-            <BarChart
-              data={dataTrades}
-              keys={["trades"]}
-              group={null}
-              layout="horizontal"
-            />
+            {dataTrades && !TMLoading ? (
+              <>
+                <BarChart
+                  data={dataTrades}
+                  keys={["trades"]}
+                  group={null}
+                  layout="horizontal"
+                />
+              </>
+            ) : (
+              <Skeleton />
+            )}
           </div>
           <div
             className="grid-cell"
@@ -428,7 +464,9 @@ export default function App() {
             {biweeklyVolume && !DVLoading ? (
               <>
                 {biweeklyVolume[0].data.length === 0 ? (
-                  <div className="grid-text">No data found.</div>
+                  <div className="grid-text">
+                    Oops, looks like there were no trades in the past 2 weeks.
+                  </div>
                 ) : (
                   <LineChart data={biweeklyVolume} legend="Day" />
                 )}
@@ -459,7 +497,9 @@ export default function App() {
             {biweeklyTrades && !DTLoading ? (
               <>
                 {biweeklyTrades[0].data.length === 0 ? (
-                  <div className="grid-text">No data found.</div>
+                  <div className="grid-text">
+                    Oops, looks like there were no trades in the past 2 weeks.
+                  </div>
                 ) : (
                   <LineChart data={biweeklyTrades} legend="Day" />
                 )}
@@ -470,6 +510,7 @@ export default function App() {
           </div>
           )
         </ResponsiveGridLayout>
+        
       </div>
     </div>
   );

@@ -42,3 +42,16 @@ code {
   transition-duration: 0.2s;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+#page-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  
+}

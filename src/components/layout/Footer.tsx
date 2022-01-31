@@ -7,7 +7,7 @@ type Props = {
 
 export default function Footer({ children }: Props) {
   return (
-    <footer className="p-10 footer bg-neutral text-neutral-content">
+    <footer id="footer" className="p-10 footer bg-neutral text-neutral-content">
       <div>
         <span className="footer-title">Services</span>
         <a className="link link-hover">Branding</a>
