@@ -8,9 +8,7 @@ import {
   getAllOpenPsyOptionMarkets,
   getParsedMarketsGroupedByPair,
 } from "../../utils/psyOptionMarketUtils";
-import {
-  fetchCurrentSerumMarkets,
-} from "../../utils/serumUtils";
+import { fetchCurrentSerumMarkets } from "../../utils/serumUtils";
 import { getTokenDict } from "../../utils/tokenUtls";
 
 interface OptionMarketContextProps {
@@ -24,6 +22,8 @@ interface OptionMarketContextProps {
   updateTokenDict: (_tokenDict: any) => void;
   serumMarkets: any;
   updateSerumMarkets: (_serumMarkets: any) => void;
+  activePair: string;
+  updateActivePair: (_activePair: string) => void;
 }
 
 export const OptionMarketContext = createContext<OptionMarketContextProps>({
@@ -37,6 +37,8 @@ export const OptionMarketContext = createContext<OptionMarketContextProps>({
   updateTokenDict: (_tokenDict: any) => {},
   serumMarkets: {},
   updateSerumMarkets: (_serumMarkets: any) => {},
+  activePair: "",
+  updateActivePair: (_activePair: string) => {},
 });
 
 export const OptionMarketContextConsumer = OptionMarketContext.Consumer;
@@ -73,7 +75,6 @@ const OptionMarketContextInit = ({ children }: Props) => {
 
   const fetchAllOpenOptionMarkets = async (program: Program) => {
     const _optionMarkets = await getAllOpenPsyOptionMarkets(program);
-    console.log(_optionMarkets);
 
     const _optionMarketsByPair = await getParsedMarketsGroupedByPair(
       _optionMarkets
@@ -103,8 +104,6 @@ const OptionMarketContextInit = ({ children }: Props) => {
   };
 
   const fetchSerumData = async () => {
-    console.log("yuuip");
-    
     if (
       optionMarketContext.serumMarkets &&
       optionMarketContext.singlePairOptionMarkets &&

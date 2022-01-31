@@ -15,7 +15,7 @@ import {
 import { endpoint } from "./utils/global";
 import Dashboard from "./views/Dashboard";
 import ContextProvider from "./components/context/ContextProvider";
-import Footer from "./components/layout/Footer";
+// import Footer from "./components/layout/Footer";
 
 function App() {
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
@@ -53,8 +53,8 @@ function App() {
               <Dashboard />
               
             </div>
-            <div className=" h-64"></div>
-            <Footer />
+            <div className=" h-96"></div>
+            {/* <Footer /> */}
           </div>
         </ContextProvider>
       </WalletProvider>

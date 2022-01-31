@@ -49,3 +49,9 @@ export function dynamicDateSort(property: any) {
     return result * sortOrder;
   };
 }
+
+export function capitalizeFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));

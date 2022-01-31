@@ -14,6 +14,7 @@ const ContextProvider = ({ children }: Props) => {
   const [openInterest, setOpenInterest] = useState<any[]>();
   const [tokenDict, setTokenDict] = useState<any>();
   const [serumMarkets, setSerumMarkets] = useState<any>({});
+  const [activePair, setActivePair] = useState<any>("");
 
   const updateOptionMarkets = (_optionMarkets: any) => {
     setOptionMarkets(_optionMarkets);
@@ -31,6 +32,9 @@ const ContextProvider = ({ children }: Props) => {
   const updateSinglePairOptionMarkets = (_optionMarkets: any) => {
     setSinglePairOptionMarkets(_optionMarkets);
   };
+  const updateActivePair = (_activePair: any) => {
+    setActivePair(_activePair);
+  };
 
   const optionMarketContextValues = {
     optionMarkets,
@@ -43,6 +47,8 @@ const ContextProvider = ({ children }: Props) => {
     updateTokenDict,
     serumMarkets,
     updateSerumMarkets,
+    activePair,
+    updateActivePair,
   };
 
   return (

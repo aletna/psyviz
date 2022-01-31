@@ -204,8 +204,6 @@ export const getDailyStatsAndVolume = async (address: string) => {
       allStats["volume"] = json.data.dailyStats.volume;
     }
     if (json.data.dailyStats.stats) {
-      console.log(json.data.dailyStats.stats.vol24hUsd);
-
       let stats = {
         ...json.data.dailyStats.stats,
         vol7dUsd: json.data.dailyStats.stats.vol7dUsd
@@ -228,8 +226,6 @@ export const fetchCurrentSerumMarkets = async (
   programId: any,
   activePair: any
 ) => {
-  console.log("heeeeeelop");
-
   let _serumData: any = {};
   const splitPair = activePair.split("/");
   const revPair = splitPair[1] + "/" + splitPair[0];
@@ -258,15 +254,11 @@ export const fetchCurrentSerumMarkets = async (
           _serumData[sd.optionMarketAddress] = sd;
         }
       }
-      console.log("aaaaaaa", _serumData);
 
       let _serumMarkets = {
         ...currentSerumMarkets,
         [activePair]: _serumData,
       };
-      console.log("aasadsa", _serumMarkets);
-
-      console.log(_serumMarkets);
       return _serumMarkets;
     }
   }

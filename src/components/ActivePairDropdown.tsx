@@ -8,16 +8,16 @@ export default function ActivePairDropdown(props: any) {
     props.setActivePair(pair);
   };
   return (
-    <div className="dropdown">
+    <div className="dropdown font-bold">
       <div
-        className="btn  dropdown-end hover:cursor-pointer py-0 px-5"
+        className="btn font-bold text-md dropdown-end hover:cursor-pointer px-5"
         onClick={() => setShowDropdown(!showDropdown)}
       >
         {props.activePair}
       </div>
 
       {showDropdown && (
-        <ul className="p-2 shadow menu dropdown-content-custom bg-base-100 rounded-box w-52">
+        <ul className="p-2 mt-3 text-md text-white  shadow menu dropdown-content-custom bg-base-100 rounded-box w-52">
           <li>
             {
               // eslint-disable-next-line jsx-a11y/anchor-is-valid

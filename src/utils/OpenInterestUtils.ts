@@ -145,17 +145,11 @@ export const getOpenInterestFromPair = async (
       }
     }
   }
-  console.log(markets);
   return markets;
 };
 
 const getStrikePriceAndTokenAmount = async (market: any) => {
   let strikePrice;
-  console.log(
-    market.underlyingAmountPerContract.toString(),
-    market.quoteAmountPerContract.toString()
-  );
-
   if (market.quoteAssetMint && market.underlyingAssetMint) {
     if (market.quoteAssetMint.symbol === "USDC") {
       strikePrice =

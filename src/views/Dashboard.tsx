@@ -8,7 +8,9 @@ import { Responsive, WidthProvider } from "react-grid-layout";
 import "../styles.css";
 import { OptionMarketContext } from "../components/context/OptionMarketContextInit";
 import {
+  capitalizeFirstLetter,
   CurrencyPairs,
+  // delay,
   dynamicDateSort,
   pairToCoinGecko,
 } from "../utils/global";
@@ -44,6 +46,8 @@ export default function App() {
   const [dataVolume, setDataVolume] = useState<any>();
   const [dataTrades, setDataTrades] = useState<any>();
   const [calendarData, setCalendarData] = useState<any>();
+  const [biweeklyVolume, setBiweeklyVolume] = useState<any>();
+  const [biweeklyTrades, setBiweeklyTrades] = useState<any>();
 
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
@@ -58,14 +62,10 @@ export default function App() {
 
   const program = useProgram();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const [currentExpiry, setCurrentExpiry] = useState<any>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [biweeklyVolume, setBiweeklyVolume] = useState<any>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [biweeklyTrades, setBiweeklyTrades] = useState<any>();
   const optionMarketContext = useContext(OptionMarketContext);
-
+  useEffect(() => {
+    console.log("mountedÎ");
+  }, []);
   // Coingecko data
   useEffect(() => {
     async function fetchPrice(currency: string) {
@@ -106,11 +106,6 @@ export default function App() {
       optionMarketContext.openInterest &&
       optionMarketContext.openInterest[activePair]
     ) {
-      console.log(">>> activepair", activePair);
-      console.log(">>> optionMarkets", optionMarketContext.optionMarkets);
-
-      console.log(optionMarketContext.openInterest);
-
       const openActivePair = optionMarketContext.openInterest[activePair];
 
       const expiryData = getExpiredData(openActivePair);
@@ -213,6 +208,46 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePair]);
 
+  useEffect(() => {
+    if (dataVolume && VMLoading) {
+      console.log("DATA", dataVolume);
+      setVMLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataVolume]);
+
+  useEffect(() => {
+    if (dataTrades && TMLoading) {
+      console.log("DATA", dataTrades);
+      setTMLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataTrades]);
+
+  useEffect(() => {
+    if (calendarData && CDLoading) {
+      console.log("DATA", calendarData);
+      setCDLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarData]);
+
+  useEffect(() => {
+    if (biweeklyVolume && DVLoading) {
+      console.log("DATA", biweeklyVolume);
+      setDVLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [biweeklyVolume]);
+
+  useEffect(() => {
+    if (biweeklyTrades && DTLoading) {
+      console.log("DATA", biweeklyTrades);
+      setDTLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [biweeklyTrades]);
+
   const fetchSerumData = async (
     singlePairOptionMarkets: any,
     serumMarkets: any
@@ -225,11 +260,6 @@ export default function App() {
         activePair
       );
       optionMarketContext.updateSerumMarkets(_serumMarkets);
-      setDVLoading(false);
-      setDTLoading(false);
-      setCDLoading(false);
-      setVMLoading(false);
-      setTMLoading(false);
     }
   };
 
@@ -252,9 +282,13 @@ export default function App() {
           }
         }
       }
-      console.log(serumMarketsToGetVolumeFrom);
-
-      getDailySerumStatsAndVol(serumMarketsToGetVolumeFrom);
+      if (optionMarketContext.activePair !== activePair) {
+        console.log("eysyesyeys", optionMarketContext.serumMarkets);
+        optionMarketContext.updateActivePair(activePair);
+        getDailySerumStatsAndVol(serumMarketsToGetVolumeFrom);
+      } else {
+        console.log("noinonon", optionMarketContext.serumMarkets);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.serumMarkets]);
@@ -262,15 +296,20 @@ export default function App() {
   const getDailySerumStatsAndVol = async (addresses: string[]) => {
     const aggregatedStats: any = {};
     const aggregatedVolume: any[] = [];
-    for (const address of addresses) {
-      console.log(address);
-      const data = await getDailyStatsAndVolume(address);
+    for (let i = 0; i < addresses.length; i += 1) {
+      console.log(i, "start");
+
+      const data = await getDailyStatsAndVolume(addresses[i]);
       if (data.stats) {
-        aggregatedStats[address] = data.stats;
+        aggregatedStats[addresses[i]] = data.stats;
       }
       if (data.volume) {
         data.volume.forEach((d: any) => aggregatedVolume.push(d));
       }
+      // if (i > 0 && i % 8 === 0) {
+      //   await delay(1000);
+      // }
+      console.log(i, "data", data);
     }
 
     getDailySerumStats(aggregatedStats);
@@ -278,6 +317,8 @@ export default function App() {
   };
 
   const getDailySerumStats = async (aggregatedStats: any) => {
+    console.log("hjel;loo");
+
     const volume7: any = Object.values(aggregatedStats).reduce(
       (acc, curr: any) => (acc = acc + curr.vol7dUsd),
       0
@@ -295,7 +336,6 @@ export default function App() {
       0
     );
 
-    console.log("volume7d", volume7);
     const _dataVolume = [
       { label: "24hr", volume: Math.floor(volume24) },
       { label: "7d", volume: Math.floor(volume7) },
@@ -306,86 +346,81 @@ export default function App() {
       { label: "7d", trades: trades7 },
     ];
 
+    console.log(_dataVolume);
+
     setDataVolume(_dataVolume);
     setDataTrades(_dataTrades);
-    console.log("merged", _dataVolume, _dataTrades);
   };
 
   const getBiweekVol = async (aggregatedVolume: any[]) => {
-    const _calendarData = aggregatedVolume.map(function (key) {
-      console.log(":))))))))", key);
+    if (aggregatedVolume.length > 0) {
+      const _calendarData = aggregatedVolume.map(function (key) {
+        return {
+          value: key.trades,
+          day: key.interval.split("T")[0],
+        };
+      });
 
-      return {
-        value: key.trades,
-        day: key.interval.split("T")[0],
-      };
-    });
-    console.log("CAL", calendarData);
+      setCalendarData(_calendarData);
 
-    setCalendarData(_calendarData);
+      const mergedWeekVolume = aggregatedVolume.reduce((a, c) => {
+        let x = a.find((e: any) => e.interval === c.interval);
+        let obj = { ...c, volume: parseInt(c.volume) };
+        if (!x) {
+          a.push(Object.assign({}, obj));
+        } else {
+          x.volume += obj.volume;
+          x.trades += obj.trades;
+        }
+        return a;
+      }, []);
 
-    const mergedWeekVolume = aggregatedVolume.reduce((a, c) => {
-      console.log("A", a);
+      mergedWeekVolume.sort(dynamicDateSort("interval"));
 
-      let x = a.find((e: any) => e.interval === c.interval);
-      console.log("x", x);
-      let obj = { ...c, volume: parseInt(c.volume) };
-      if (!x) {
-        a.push(Object.assign({}, obj));
-      } else {
-        x.volume += obj.volume;
-        x.trades += obj.trades;
-      }
-      return a;
-    }, []);
+      const extractedVolume = mergedWeekVolume.map((p: any) => {
+        return {
+          x: p.interval.split("T")[0].split("2022-")[1],
+          y: p.volume / 10 ** 5, // p.volume.slice(0, -9), // is decimal correct??
+        };
+      });
 
-    console.log(mergedWeekVolume);
-    mergedWeekVolume.sort(dynamicDateSort("interval"));
+      const volumeWeeks = [
+        {
+          id: "volume",
+          color: "#91ffd7",
+          data: extractedVolume,
+        },
+      ];
+      const extractedTrades = mergedWeekVolume.map((p: any) => {
+        return {
+          x: p.interval.split("T")[0].split("2022-")[1],
+          y: p.trades,
+        };
+      });
 
-    const extractedVolume = mergedWeekVolume.map((p: any) => {
-      return {
-        x: p.interval.split("T")[0].split("2022-")[1],
-        y: p.volume / 10 ** 5, // p.volume.slice(0, -9), // is decimal correct??
-      };
-    });
+      const tradesWeeks = [
+        {
+          id: "volume",
+          color: "#91ffd7",
+          data: extractedTrades,
+        },
+      ];
 
-    const volumeWeeks = [
-      {
-        id: "volume",
-        color: "#91ffd7",
-        data: extractedVolume,
-      },
-    ];
-    const extractedTrades = mergedWeekVolume.map((p: any) => {
-      return {
-        x: p.interval.split("T")[0].split("2022-")[1],
-        y: p.trades,
-      };
-    });
-
-    const tradesWeeks = [
-      {
-        id: "volume",
-        color: "#91ffd7",
-        data: extractedTrades,
-      },
-    ];
-    console.log("volweeks", volumeWeeks);
-
-    setBiweeklyVolume(volumeWeeks);
-    setBiweeklyTrades(tradesWeeks);
-
-    console.log(volumeWeeks, tradesWeeks);
+      setBiweeklyVolume(volumeWeeks);
+      setBiweeklyTrades(tradesWeeks);
+    }
   };
 
   return (
     <div>
       <div>
-        <Navbar title="PsyOptions Dashboard" activePair={activePair} setActivePair={setActivePair}/>
+        <Navbar
+          title="PsyOptions Dashboard"
+          activePair={activePair}
+          setActivePair={setActivePair}
+        />
       </div>
       <div className="w-full pb-5 px-5 ">
-  
-
         <ResponsiveGridLayout
           className=""
           breakpoints={breakpoints}
@@ -398,7 +433,7 @@ export default function App() {
               data-grid={{ x: 0, y: 0, w: 1, h: 2, static: true }}
             >
               <h3 className="grid-header">
-                {pairToCoinGecko[activePair]} Price: $
+                {capitalizeFirstLetter(pairToCoinGecko[activePair])} Price: $
                 {currencyPrice && currencyPrice}
               </h3>
 
@@ -518,7 +553,15 @@ export default function App() {
           >
             <h3 className="grid-header">Daily # of Trades</h3>
             {calendarData && !CDLoading ? (
-              <CalendarChart data={calendarData} />
+              <>
+                {calendarData.length > 0 ? (
+                  <CalendarChart data={calendarData} />
+                ) : (
+                  <div>
+                    Oops, looks like there were no trades in the past 2 weeks.
+                  </div>
+                )}
+              </>
             ) : (
               <Skeleton />
             )}
