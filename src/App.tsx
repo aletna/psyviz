@@ -43,10 +43,12 @@ function App() {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets}>
         <ContextProvider>
-          <Navbar title="PsyOptions Dashboard"/>
-          {/* <Home />  */}
-          <Dashboard />
-          <Footer />
+          <div className="min-h-screen" style={{ backgroundColor: "#f5f5f5 !important" }}>
+            <Navbar title="PsyOptions Dashboard" />
+            {/* <Home />  */}
+            <Dashboard />
+            <Footer />
+          </div>
         </ContextProvider>
       </WalletProvider>
     </ConnectionProvider>

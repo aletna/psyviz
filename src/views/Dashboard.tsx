@@ -71,6 +71,13 @@ export default function App() {
   const [openCalls, setOpenCalls] = useState<any>();
   const [openPuts, setOpenPuts] = useState<any>();
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
+
+  const [OIELoading, setOIELoading] = useState<boolean>(true);
+  const [OISPLoading, setOISPLoading] = useState<boolean>(true);
+  const [OICLoading, setOICLoading] = useState<boolean>(true);
+  const [DVLoading, setDVLoading] = useState<boolean>(true);
+  const [DTLoading, setDTLoading] = useState<boolean>(true);
+
   const program = useProgram();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -131,6 +138,7 @@ export default function App() {
       const expiryData = getExpiredData(openActivePair);
 
       setExpiryData(expiryData);
+      setOIELoading(false);
 
       const openCalls = findAllByKey(openActivePair, "calls").reduce(
         (partialSum: any, a: any) => partialSum + a,
@@ -174,15 +182,22 @@ export default function App() {
       });
 
       setShapedData(shapedData);
+      setOISPLoading(false);
 
       setOpenCalls(openCalls);
       setOpenPuts(openPuts);
+      setOICLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.openInterest]);
 
   useEffect(() => {
     async function updateActivePair(pair: string) {
+      setOIELoading(true);
+      setOISPLoading(true);
+      setOICLoading(true);
+      setDVLoading(true);
+      setDTLoading(true);
       let _singlePairOptionMarkets: any = combinePairDict(
         optionMarketContext.optionMarkets,
         pair
@@ -226,6 +241,8 @@ export default function App() {
         activePair
       );
       optionMarketContext.updateSerumMarkets(_serumMarkets);
+      setDVLoading(false);
+      setDTLoading(false);
     }
   };
 
@@ -308,8 +325,8 @@ export default function App() {
         data: extractedTrades,
       },
     ];
-    console.log("volweeks",volumeWeeks);
-    
+    console.log("volweeks", volumeWeeks);
+
     setBiweeklyVolume(volumeWeeks);
     setBiweeklyTrades(tradesWeeks);
 
@@ -347,7 +364,6 @@ export default function App() {
               ) : null}
             </div>
           )}
-
           <div
             className="grid-cell"
             key="2"
@@ -361,7 +377,6 @@ export default function App() {
               layout="horizontal"
             />
           </div>
-
           <div
             className="grid-cell"
             key="3"
@@ -375,62 +390,95 @@ export default function App() {
               layout="horizontal"
             />
           </div>
-
           <div
             className="grid-cell"
             key="4"
             data-grid={{ x: 3, y: 0, w: 1, h: 2, static: true }}
           >
             <h3 className="grid-header">Call/Put Ratio</h3>
-            <PieChart data={[openCalls, openPuts]} />
+            {openCalls && openPuts && !OICLoading ? (
+              <PieChart data={[openCalls, openPuts]} />
+            ) : (
+              <Skeleton />
+            )}
           </div>
-
           <div
             className="grid-cell"
             key="5"
             data-grid={{ x: 0, y: 2, w: 2, h: 3, static: true }}
           >
             <h3 className="grid-header">Open Interest by Strike Price</h3>
-            <BarChart
-              data={shapedData}
-              keys={optionBars}
-              group={true}
-              layout="vertical"
-            />
+            {shapedData && !OISPLoading ? (
+              <BarChart
+                data={shapedData}
+                keys={optionBars}
+                group={true}
+                layout="vertical"
+              />
+            ) : (
+              <Skeleton />
+            )}
           </div>
-
-          {biweeklyVolume && (
-            <div
-              className="grid-cell"
-              key="6"
-              data-grid={{ x: 2, y: 2, w: 2, h: 3, static: true }}
-            >
-              <h3 className="grid-header">Daily Volume</h3>
-              <LineChart data={biweeklyVolume} legend="Day" />
-            </div>
-          )}
-
+          <div
+            className="grid-cell"
+            key="6"
+            data-grid={{ x: 2, y: 2, w: 2, h: 3, static: true }}
+          >
+            <h3 className="grid-header">Daily Volume</h3>
+            {biweeklyVolume && !DVLoading ? (
+              <>
+                {biweeklyVolume[0].data.length === 0 ? (
+                  <div className="grid-text">No data found.</div>
+                ) : (
+                  <LineChart data={biweeklyVolume} legend="Day" />
+                )}
+              </>
+            ) : (
+              <Skeleton />
+            )}
+          </div>
           <div
             className="grid-cell"
             key="7"
             data-grid={{ x: 0, y: 5, w: 1, h: 2 }}
           >
             <h3 className="grid-header">Open Interest by Expiry</h3>
-            <BarChart data={expiryData} keys={optionBars} layout group />
+            {expiryData && !OIELoading ? (
+              <BarChart data={expiryData} keys={optionBars} layout group />
+            ) : (
+              <Skeleton />
+            )}
           </div>
+          <div
+            className="grid-cell"
+            key="8"
+            data-grid={{ x: 2, y: 5, w: 3, h: 2 }}
+          >
+            <h3 className="grid-header">Daily Trades</h3>
 
-          {biweeklyTrades && (
-            <div
-              className="grid-cell"
-              key="8"
-              data-grid={{ x: 2, y: 5, w: 3, h: 2 }}
-            >
-              <h3 className="grid-header">2 Week Trades</h3>
-              <LineChart data={biweeklyTrades} legend="Day" />
-            </div>
-          )}
+            {biweeklyTrades && !DTLoading ? (
+              <>
+                {biweeklyTrades[0].data.length === 0 ? (
+                  <div className="grid-text">No data found.</div>
+                ) : (
+                  <LineChart data={biweeklyTrades} legend="Day" />
+                )}
+              </>
+            ) : (
+              <Skeleton />
+            )}
+          </div>
+          )
         </ResponsiveGridLayout>
       </div>
     </div>
   );
 }
+
+const Skeleton = () => {
+  return (
+    <div className=" h-full p-5 w-full mx-auto animate-pulse pb-7 ">
+      <div className="rounded-md animate-pulse flex bg-gray-200 h-full  w-full"></div>
+    </div>
+  );
+};
