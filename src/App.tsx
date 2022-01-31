@@ -49,7 +49,7 @@ function App() {
             style={{ backgroundColor: "#f5f5f5 !important" }}
           >
             <div id="content-wrap">
-              <Navbar title="PsyOptions Dashboard" />
+              
               {/* <Home />  */}
               <Dashboard />
               

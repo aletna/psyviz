@@ -11,7 +11,7 @@ export default function BarChart({ data, keys, group, layout }) {
           indexBy="label"
           groupMode={group ? "grouped" : "stacked"}
           enableLabel={false}
-          layout={layout ? "horizontal" : "vertical"}
+          layout={layout}
           margin={{ top: 30, right: 130, bottom: 50, left: 60 }}
           padding={0.3}
           colors={["#91f2ff", "#ffa1a1"]}

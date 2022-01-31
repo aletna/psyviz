@@ -24,6 +24,8 @@ import {
   getDailyStatsAndVolume,
 } from "../utils/serumUtils";
 import { useProgram } from "../hooks/useProgram";
+import CalendarChart from "../components/graphs/CalendarChart";
+import Navbar from "../components/layout/Navbar";
 
 // Handles the responsive nature of the grid
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -42,6 +44,8 @@ export default function App() {
   const [openPuts, setOpenPuts] = useState<any>();
   const [dataVolume, setDataVolume] = useState<any>();
   const [dataTrades, setDataTrades] = useState<any>();
+  const [calendarData, setCalendarData] = useState<any>();
+
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
   const [OIELoading, setOIELoading] = useState<boolean>(true);
@@ -49,6 +53,7 @@ export default function App() {
   const [OICLoading, setOICLoading] = useState<boolean>(true);
   const [DVLoading, setDVLoading] = useState<boolean>(true);
   const [DTLoading, setDTLoading] = useState<boolean>(true);
+  const [CDLoading, setCDLoading] = useState<boolean>(true);
   const [VMLoading, setVMLoading] = useState<boolean>(true);
   const [TMLoading, setTMLoading] = useState<boolean>(true);
 
@@ -124,6 +129,7 @@ export default function App() {
       );
 
       let tempData = Object.entries(openActivePair).map(([k, v]) => v);
+
       let tempo: any = {};
       Object.entries(tempData).forEach(([k, map2]: any) => {
         Object.entries(map2).forEach(([k2, v2]: any) => {
@@ -136,16 +142,18 @@ export default function App() {
         });
       });
 
-      console.log(tempo);
-      //tempo = Object.entries(tempo).map(e => e[1])
-      //tempo = tempo.filter((i) => i.calls || i.puts);
       Object.entries(tempo).forEach(([k, v]: any) => {
         if (v.calls === 0 && v.puts === 0) {
           delete tempo[k];
         }
       });
 
-      console.log(tempo);
+      tempo = Object.keys(tempo)
+        .sort()
+        .reduce((obj: any, key) => {
+          obj[key] = tempo[key];
+          return obj;
+        }, {});
 
       let shapedData = Object.keys(tempo).map(function (key) {
         return {
@@ -172,6 +180,7 @@ export default function App() {
       setOICLoading(true);
       setDVLoading(true);
       setDTLoading(true);
+      setCDLoading(true);
       setVMLoading(true);
       setTMLoading(true);
       let _singlePairOptionMarkets: any = combinePairDict(
@@ -219,6 +228,7 @@ export default function App() {
       optionMarketContext.updateSerumMarkets(_serumMarkets);
       setDVLoading(false);
       setDTLoading(false);
+      setCDLoading(false);
       setVMLoading(false);
       setTMLoading(false);
     }
@@ -303,6 +313,18 @@ export default function App() {
   };
 
   const getBiweekVol = async (aggregatedVolume: any[]) => {
+    const _calendarData = aggregatedVolume.map(function (key) {
+      console.log(":))))))))", key);
+
+      return {
+        value: key.trades,
+        day: key.interval.split("T")[0],
+      };
+    });
+    console.log("CAL", calendarData);
+
+    setCalendarData(_calendarData);
+
     const mergedWeekVolume = aggregatedVolume.reduce((a, c) => {
       console.log("A", a);
 
@@ -324,7 +346,7 @@ export default function App() {
     const extractedVolume = mergedWeekVolume.map((p: any) => {
       return {
         x: p.interval.split("T")[0].split("2022-")[1],
-        y: p.volume, // p.volume.slice(0, -9), // is decimal correct??
+        y: p.volume / 10 ** 5, // p.volume.slice(0, -9), // is decimal correct??
       };
     });
 
@@ -359,13 +381,11 @@ export default function App() {
 
   return (
     <div>
+      <div>
+        <Navbar title="PsyOptions Dashboard" activePair={activePair} setActivePair={setActivePair}/>
+      </div>
       <div className="w-full pb-5 px-5 ">
-        <div className="flex">
-          <ActivePairDropdown
-            activePair={activePair}
-            setActivePair={setActivePair}
-          />
-        </div>
+  
 
         <ResponsiveGridLayout
           className=""
@@ -482,7 +502,12 @@ export default function App() {
           >
             <h3 className="grid-header">Open Interest by Expiry</h3>
             {expiryData && !OIELoading ? (
-              <BarChart data={expiryData} keys={optionBars} layout group />
+              <BarChart
+                data={expiryData}
+                keys={optionBars}
+                layout="vertical"
+                group
+              />
             ) : (
               <Skeleton />
             )}
@@ -490,9 +515,21 @@ export default function App() {
           <div
             className="grid-cell"
             key="8"
-            data-grid={{ x: 2, y: 5, w: 3, h: 2 }}
+            data-grid={{ x: 1, y: 5, w: 1, h: 2 }}
           >
-            <h3 className="grid-header">Daily Trades</h3>
+            <h3 className="grid-header">Daily # of Trades</h3>
+            {calendarData && !CDLoading ? (
+              <CalendarChart data={calendarData} />
+            ) : (
+              <Skeleton />
+            )}
+          </div>
+          <div
+            className="grid-cell"
+            key="9"
+            data-grid={{ x: 3, y: 5, w: 2, h: 2 }}
+          >
+            <h3 className="grid-header">Daily # of Trades</h3>
 
             {biweeklyTrades && !DTLoading ? (
               <>
@@ -510,7 +547,6 @@ export default function App() {
           </div>
           )
         </ResponsiveGridLayout>
-        
       </div>
     </div>
   );

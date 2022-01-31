@@ -10,7 +10,7 @@ export default function ActivePairDropdown(props: any) {
   return (
     <div className="dropdown">
       <div
-        className="btn hover:cursor-pointer mb-3 px-5"
+        className="btn  dropdown-end hover:cursor-pointer py-0 px-5"
         onClick={() => setShowDropdown(!showDropdown)}
       >
         {props.activePair}
