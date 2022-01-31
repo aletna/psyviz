@@ -5,6 +5,7 @@ import {
   TypeDef,
 } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { PublicKey } from "@solana/web3.js";
+import { allMints } from "./global";
 import { parseOptionMarket } from "./optionMarketUtils";
 import { deriveSerumMarketAddress, getSerumMarketData } from "./serumUtils";
 import { getAccountInfo, getProgramAccounts } from "./solanaUtils";
@@ -17,8 +18,25 @@ export const getAllPsyOptionMarkets = async (program: Program) => {
 
 export const getAllOpenPsyOptionMarkets = async (program: Program) => {
   const optionMarkets = await getAllPsyOptionMarkets(program);
-  const filteredOptionMarkets = optionMarkets.filter(optionMarketIsNotExpired);
-  return filteredOptionMarkets;
+  let filteredOptionMarkets = [];
+  for (const _optionMarket of optionMarkets) {
+    if (
+      (allMints[_optionMarket.account.quoteAssetMint.toBase58()] &&
+        // eslint-disable-next-line eqeqeq
+        _optionMarket.account.underlyingAssetMint ==
+          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v") ||
+      (allMints[_optionMarket.account.underlyingAssetMint.toBase58()] &&
+        // eslint-disable-next-line eqeqeq
+        _optionMarket.account.quoteAssetMint ==
+          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+    ) {
+      filteredOptionMarkets.push(_optionMarket);
+    }
+  }
+  const filteredOptionMarkets2 = filteredOptionMarkets.filter(
+    optionMarketIsNotExpired
+  );
+  return filteredOptionMarkets2;
 };
 
 export const getOptionMintInfo = async (optionMint: PublicKey) => {
@@ -98,5 +116,5 @@ export const getParsedMarketsGroupedByPair = async (
       );
     }
   }
-  return markets
+  return markets;
 };

@@ -20,16 +20,25 @@ export const getSerumAddressAndMarketData = async (
   );
 
   // TRY FOR EACH TO SEE IF MARKET EXISTS!
-  let marketData = await getSerumMarketData(serumAddress1);
+  let marketData = await getSerumMarketData(
+    serumAddress1,
+    optionMarketKey.toBase58()
+  );
   if (!marketData) {
-    marketData = await getSerumMarketData(serumAddress2);
+    marketData = await getSerumMarketData(
+      serumAddress2,
+      optionMarketKey.toBase58()
+    );
   }
   if (marketData) {
     return marketData;
   }
 };
 
-export const getSerumMarketData = async (marketAddress: PublicKey) => {
+export const getSerumMarketData = async (
+  marketAddress: PublicKey,
+  optionMarketKey?: string
+) => {
   try {
     const market = await getSerumMarket(marketAddress);
 
@@ -38,7 +47,8 @@ export const getSerumMarketData = async (marketAddress: PublicKey) => {
 
       let fullMarketData = {
         ...marketData,
-        marketAddress: marketAddress.toBase58(),
+        serumMarketAddress: marketAddress.toBase58(),
+        optionMarketAddress: optionMarketKey ? optionMarketKey : undefined,
       };
 
       return fullMarketData;
@@ -191,4 +201,40 @@ export const getDailyStats = async (address: string) => {
   const json = await response.json();
   console.log(json, address);
   return json;
+};
+
+export const getBiweekVolume = async (address: string) => {
+  const data = JSON.stringify({
+    query: `
+    query {
+        dailyStats(markets: "${address}") {
+            volume {
+              volume
+              trades
+              interval
+            }
+        }
+    } `,
+    variables: `{
+          "address": "${address}"
+        }`,
+  });
+
+  const response = await fetch("https://api.serum.markets/", {
+    method: "post",
+    body: data,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  });
+  let json;
+  if (response) {
+    json = await response.json();
+  }
+  if (json.data && json.data.dailyStats && json.data.dailyStats.volume) {
+    return json.data.dailyStats.volume;
+  }
+
+  return;
 };

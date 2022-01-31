@@ -5,9 +5,9 @@ import {
   TypeDef,
 } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { PublicKey } from "@solana/web3.js";
-import {
-  getParsedMarketsGroupedByPair,
-} from "./psyOptionMarketUtils";
+import moment from "moment";
+import { findAllByKey } from "./findAllByKeys";
+import { getParsedMarketsGroupedByPair } from "./psyOptionMarketUtils";
 import { getAccountInfo, getProgramAccounts } from "./solanaUtils";
 
 export const getOpenInterest = async (
@@ -17,7 +17,13 @@ export const getOpenInterest = async (
   const optionMarketsByPair = await getParsedMarketsGroupedByPair(
     optionMarkets
   );
+  const markets = await getOpenInterestFromPair(optionMarketsByPair);
+  return markets;
+};
 
+export const getOpenInterestFromPair = async (
+  optionMarketsByPair: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>[]
+) => {
   let markets: any = {};
   for (const marketPair in optionMarketsByPair) {
     // 1 PAIR GROUPED BY EXPIRATION
@@ -140,10 +146,8 @@ export const getOpenInterest = async (
     }
   }
   console.log(markets);
-  return markets
+  return markets;
 };
-
-
 
 const getStrikePriceAndTokenAmount = async (market: any) => {
   let strikePrice;
@@ -192,4 +196,37 @@ const getTokenCirculation = async (market: any) => {
   } else {
     console.error("option token supply does not match circulation");
   }
+};
+
+export const getExpiredData = (openActivePair: any, currentExpiry: any) => {
+  // const openData: any = openActivePair[currentExpiry];
+  let expiryData: any = Object.keys(openActivePair).map(function (key) {
+    return {
+      label: moment.unix(parseInt(key)).format("MM/DD"),
+      calls: findAllByKey(openActivePair[key], "calls").reduce(
+        (p: any, a: any) => p + a,
+        0
+      ),
+      puts: findAllByKey(openActivePair[key], "puts").reduce(
+        (p: any, a: any) => p + a,
+        0
+      ),
+    };
+  });
+
+  expiryData = Object.values(
+    expiryData.reduce((result: any, object: any) => {
+      result[object.label] = result[object.label] || {
+        label: object.label,
+      };
+      ["calls", "puts"].forEach(
+        (key) =>
+          (result[object.label][key] =
+            (result[object.label][key] || 0) + object[key])
+      );
+      return result;
+    }, Object.create(null))
+  );
+  expiryData = expiryData.filter((i: any) => i.calls || i.puts);
+  return expiryData;
 };

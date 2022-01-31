@@ -1,24 +1,22 @@
 import React from "react";
 import { ResponsivePie } from "@nivo/pie";
 
-const dataExample = [
-  {
-    id: "calls",
-    label: "calls",
-    value: 42,
-    color: "hsl(65, 70%, 50%)",
-  },
-  {
-    id: "puts",
-    label: "puts",
-    value: 58,
-    color: "hsl(199, 70%, 50%)",
-  },
-];
-
-const PieChart = ({ data /* see data tab */ }) => (
+const PieChart = ({ data }) => (
   <ResponsivePie
-    data={dataExample}
+    data={[
+      {
+        id: "calls",
+        label: "calls",
+        value: data[0],
+        color: "hsl(65, 70%, 50%)",
+      },
+      {
+        id: "puts",
+        label: "puts",
+        value: data[1],
+        color: "hsl(199, 70%, 50%)",
+      },
+    ]}
     margin={{
       top: 40,
       right: 80,
@@ -73,5 +71,4 @@ const PieChart = ({ data /* see data tab */ }) => (
     ]}
   />
 );
-
 export default PieChart;

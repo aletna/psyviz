@@ -41,7 +41,7 @@ export default function Volume(props: any) {
     let allStats: any = {};
     for (const market of markets) {
       try {
-        const stats = await getDailyStats(market.marketAddress);
+        const stats = await getDailyStats(market.serumMarketAddress);
         if (stats) {
           const dailyStats = {
             trades1h: stats.data.dailyStats.stats.trades1h,
@@ -53,14 +53,14 @@ export default function Volume(props: any) {
             tvlUsd: stats.data.dailyStats.stats.tvlUsd / 10 ** 5,
           };
 
-          if (allStats[market.marketAddress]) {
+          if (allStats[market.serumMarketAddress]) {
             console.log(
               "-------------- ALREADY EXISTS -------------- ",
               dailyStats,
               market
             );
           } else {
-            allStats[market.marketAddress] = dailyStats;
+            allStats[market.serumMarketAddress] = dailyStats;
           }
         }
       } catch (err) {

@@ -1,4 +1,3 @@
-
 import { ProgramAccount } from "@project-serum/anchor";
 import { Idl, IdlTypeDef } from "@project-serum/anchor/dist/cjs/idl";
 import {
@@ -88,4 +87,19 @@ export const parseOptionMarket = async (
       writerTokenMint,
     };
   }
+};
+
+export const combinePairDict = (optionMarketsByPair: any, pair: string) => {
+  const _singlePairOptionMarkets: any = {};
+  const splitPair = pair.split("/");
+  const revPair = splitPair[1] + "/" + splitPair[0];
+  if (optionMarketsByPair[pair] && optionMarketsByPair[revPair]) {
+    _singlePairOptionMarkets[pair] = optionMarketsByPair[pair];
+    _singlePairOptionMarkets[revPair] = optionMarketsByPair[revPair];
+  } else if (optionMarketsByPair[pair]) {
+    _singlePairOptionMarkets[pair] = optionMarketsByPair[pair];
+  } else if (optionMarketsByPair[revPair]) {
+    _singlePairOptionMarkets[revPair] = optionMarketsByPair[revPair];
+  }
+  return _singlePairOptionMarkets;
 };
