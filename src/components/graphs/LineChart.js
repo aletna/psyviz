@@ -1,7 +1,11 @@
 import React from "react";
 import { ResponsiveLine } from "@nivo/line";
 
-export default function LineChart({ data, legend }) {
+export default function LineChart({ data, legend, axisLeft = "" }) {
+  let al;
+  if (axisLeft !== "") {
+    al = axisLeft;
+  }
   return (
     <>
       <ResponsiveLine
@@ -14,8 +18,15 @@ export default function LineChart({ data, legend }) {
           tickRotation: 0,
           legend: legend,
           legendOffset: 36,
-          legendPosition: "middle"
+          legendPosition: "middle",
         }}
+        axisLeft={
+          al && {
+            legend: al,
+            legendOffset: -50,
+            legendPosition: "middle",
+          }
+        }
         colors={(d) => d.color}
         pointSize={7}
         pointBorderWidth={2}
@@ -24,12 +35,12 @@ export default function LineChart({ data, legend }) {
         animate={true}
         curve="cardinal"
         xScale={{
-          type: "point"
+          type: "point",
         }}
         yScale={{
           type: "linear",
           min: "auto",
-          max: "auto"
+          max: "auto",
         }}
         legends={[
           {
@@ -45,8 +56,8 @@ export default function LineChart({ data, legend }) {
             itemOpacity: 0.75,
             symbolSize: 12,
             symbolShape: "circle",
-            symbolBorderColor: "rgba(0, 0, 0, .5)"
-          }
+            symbolBorderColor: "rgba(0, 0, 0, .5)",
+          },
         ]}
       />
     </>

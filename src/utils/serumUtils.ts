@@ -226,6 +226,8 @@ export const fetchCurrentSerumMarkets = async (
   programId: any,
   activePair: any
 ) => {
+  console.log("hhi");
+  
   let _serumData: any = {};
   const splitPair = activePair.split("/");
   const revPair = splitPair[1] + "/" + splitPair[0];

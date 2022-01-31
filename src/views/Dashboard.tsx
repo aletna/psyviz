@@ -65,6 +65,8 @@ export default function App() {
   const optionMarketContext = useContext(OptionMarketContext);
   useEffect(() => {
     console.log("mountedÎ");
+    optionMarketContext.updateActivePair("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Coingecko data
   useEffect(() => {
@@ -181,6 +183,7 @@ export default function App() {
         optionMarketContext.optionMarkets,
         pair
       );
+      console.log("SINGLE", _singlePairOptionMarkets);
 
       if (_singlePairOptionMarkets) {
         optionMarketContext.updateSinglePairOptionMarkets(
@@ -287,7 +290,12 @@ export default function App() {
         optionMarketContext.updateActivePair(activePair);
         getDailySerumStatsAndVol(serumMarketsToGetVolumeFrom);
       } else {
-        console.log("noinonon", optionMarketContext.serumMarkets);
+        console.log(
+          "noinonon",
+          optionMarketContext.serumMarkets,
+          activePair,
+          optionMarketContext.activePair
+        );
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -438,7 +446,7 @@ export default function App() {
               </h3>
 
               {historicData ? (
-                <LineChart data={[historicData]} legend="Day" />
+                <LineChart data={[historicData]} legend="Day" axisLeft="USD" />
               ) : null}
             </div>
           )}

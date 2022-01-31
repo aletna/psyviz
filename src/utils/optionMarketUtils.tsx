@@ -4,7 +4,8 @@ import {
   IdlTypes,
   TypeDef,
 } from "@project-serum/anchor/dist/cjs/program/namespace/types";
-import { getTokenBalance, getTokenData } from "./tokenUtls";
+import { allMints } from "./global";
+import { getTokenData } from "./tokenUtls";
 
 export const parseOptionMarket = async (
   optionMarket: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>
@@ -20,35 +21,52 @@ export const parseOptionMarket = async (
     const expiration = exp;
 
     // POOLS
-    const quoteAssetPoolPK = optionMarket.account.quoteAssetPool.toBase58();
-    const underlyingAssetPoolPK =
-      optionMarket.account.quoteAssetPool.toBase58();
+    // const quoteAssetPoolPK = optionMarket.account.quoteAssetPool.toBase58();
+    // const underlyingAssetPoolPK =
+    //   optionMarket.account.quoteAssetPool.toBase58();
+    const quoteAssetMintString = optionMarket.account.quoteAssetMint.toBase58();
+    const underlyingAssetMintString =
+      optionMarket.account.underlyingAssetMint.toBase58();
 
-    const promises = [
-      [getTokenData, optionMarket.account.quoteAssetMint.toBase58()],
-      [getTokenData, optionMarket.account.underlyingAssetMint.toBase58()],
-      [getTokenBalance, quoteAssetPoolPK],
-      [getTokenBalance, underlyingAssetPoolPK],
-    ];
+    let quoteAssetMint;
+    let underlyingAssetMint;
 
-    const [
-      quoteAssetMint,
-      underlyingAssetMint,
-      quoteAssetPoolPKBalance,
-      underlyingAssetPoolPKBalance,
-    ] = await Promise.all(promises.map((fn) => fn[0](fn[1])));
+    if (allMints[quoteAssetMintString] && allMints[underlyingAssetMintString]) {
+      const promises = [
+        [getTokenData, optionMarket.account.quoteAssetMint.toBase58()],
+        [getTokenData, optionMarket.account.underlyingAssetMint.toBase58()],
+        // [getTokenBalance, quoteAssetPoolPK],
+        // [getTokenBalance, underlyingAssetPoolPK],
+      ];
 
-    const quoteAssetPool = {
-      publicKey: quoteAssetPoolPK,
-      balance: quoteAssetPoolPKBalance.balance,
-      decimals: quoteAssetPoolPKBalance.decimals,
-    };
+      [
+        quoteAssetMint,
+        underlyingAssetMint,
+        // quoteAssetPoolPKBalance,
+        // underlyingAssetPoolPKBalance,
+      ] = await Promise.all(promises.map((fn) => fn[0](fn[1])));
+      console.log(
+        quoteAssetMintString,
+        underlyingAssetMintString,
+        quoteAssetMint.symbol,
+        underlyingAssetMint.symbol
+      );
+    } else {
+      quoteAssetMint = quoteAssetMintString;
+      underlyingAssetMint = underlyingAssetMintString;
+    }
 
-    const underlyingAssetPool = {
-      publicKey: underlyingAssetPoolPK,
-      balance: underlyingAssetPoolPKBalance.balance,
-      decimals: underlyingAssetPoolPKBalance.decimals,
-    };
+    // const quoteAssetPool = {
+    //   publicKey: quoteAssetPoolPK,
+    //   balance: quoteAssetPoolPKBalance.balance,
+    //   decimals: quoteAssetPoolPKBalance.decimals,
+    // };
+
+    // const underlyingAssetPool = {
+    //   publicKey: underlyingAssetPoolPK,
+    //   balance: underlyingAssetPoolPKBalance.balance,
+    //   decimals: underlyingAssetPoolPKBalance.decimals,
+    // };
 
     // AMOUNTS per contract
     const quoteAmountPerContract =
@@ -57,11 +75,11 @@ export const parseOptionMarket = async (
       optionMarket.account.underlyingAmountPerContract.toString();
 
     // exerciseFeeAccount
-    const exerciseFeeAccount =
-      optionMarket.account.exerciseFeeAccount.toBase58();
+    // const exerciseFeeAccount =
+    //   optionMarket.account.exerciseFeeAccount.toBase58();
 
     // mintFeeAccount
-    const mintFeeAccount = optionMarket.account.mintFeeAccount.toBase58();
+    // const mintFeeAccount = optionMarket.account.mintFeeAccount.toBase58();
 
     // TOKENS
     const optionMint = optionMarket.account.optionMint.toBase58();
@@ -73,15 +91,15 @@ export const parseOptionMarket = async (
       expiration,
 
       quoteAssetMint,
-      quoteAssetPool,
+      // quoteAssetPool,
       quoteAmountPerContract,
 
       underlyingAssetMint,
-      underlyingAssetPool,
+      // underlyingAssetPool,
       underlyingAmountPerContract,
 
-      exerciseFeeAccount,
-      mintFeeAccount,
+      // exerciseFeeAccount,
+      // mintFeeAccount,
 
       optionMint,
       writerTokenMint,

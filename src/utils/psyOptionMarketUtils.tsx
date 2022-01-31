@@ -21,14 +21,8 @@ export const getAllOpenPsyOptionMarkets = async (program: Program) => {
   let filteredOptionMarkets = [];
   for (const _optionMarket of optionMarkets) {
     if (
-      (allMints[_optionMarket.account.quoteAssetMint.toBase58()] &&
-        // eslint-disable-next-line eqeqeq
-        _optionMarket.account.underlyingAssetMint ==
-          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v") ||
-      (allMints[_optionMarket.account.underlyingAssetMint.toBase58()] &&
-        // eslint-disable-next-line eqeqeq
-        _optionMarket.account.quoteAssetMint ==
-          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+      allMints[_optionMarket.account.quoteAssetMint.toBase58()] &&
+      allMints[_optionMarket.account.underlyingAssetMint.toBase58()]
     ) {
       filteredOptionMarkets.push(_optionMarket);
     }
@@ -86,6 +80,8 @@ export const getParsedOptionMarket = async (
   optionMarket: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>
 ) => {
   const _optionMarket = await parseOptionMarket(optionMarket);
+  console.log(_optionMarket);
+  
   return _optionMarket;
 };
 
