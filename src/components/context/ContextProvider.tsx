@@ -10,6 +10,7 @@ type Props = {
 
 const ContextProvider = ({ children }: Props) => {
   const [optionMarkets, setOptionMarkets] = useState<any>();
+  const [singlePairOptionMarkets, setSinglePairOptionMarkets] = useState<any>();
   const [openInterest, setOpenInterest] = useState<any[]>();
   const [tokenDict, setTokenDict] = useState<any>();
   const [serumMarkets, setSerumMarkets] = useState<any>({});
@@ -27,10 +28,15 @@ const ContextProvider = ({ children }: Props) => {
   const updateSerumMarkets = (_serumMarkets: any) => {
     setSerumMarkets(_serumMarkets);
   };
+  const updateSinglePairOptionMarkets = (_optionMarkets: any) => {
+    setSinglePairOptionMarkets(_optionMarkets);
+  };
 
   const optionMarketContextValues = {
     optionMarkets,
     updateOptionMarkets,
+    singlePairOptionMarkets,
+    updateSinglePairOptionMarkets,
     openInterest,
     updateOpenInterest,
     tokenDict,

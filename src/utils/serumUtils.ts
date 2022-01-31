@@ -238,3 +238,65 @@ export const getBiweekVolume = async (address: string) => {
 
   return;
 };
+
+export const fetchCurrentSerumMarkets = async (
+  currentSerumMarkets: any,
+  singlePairOptionMarkets: any,
+  programId: any,
+  activePair: any
+) => {
+  console.log("heeeeeelop");
+  
+  let _serumData: any = {};
+  const splitPair = activePair.split("/");
+  const revPair = splitPair[1] + "/" + splitPair[0];
+  if (
+    singlePairOptionMarkets &&
+    (singlePairOptionMarkets[activePair] || singlePairOptionMarkets[revPair])
+  ) {
+    let om;
+    if (
+      singlePairOptionMarkets[activePair] &&
+      singlePairOptionMarkets[revPair]
+    ) {
+      om = singlePairOptionMarkets[activePair].concat(
+        singlePairOptionMarkets[revPair]
+      );
+    } else if (singlePairOptionMarkets[activePair]) {
+      om = singlePairOptionMarkets[activePair];
+    } else if (singlePairOptionMarkets[revPair]) {
+      om = singlePairOptionMarkets[revPair];
+    }
+    if (om) {
+      for (const m in om) {
+        const sd = await getSerum(om[m], programId);
+
+        if (sd && sd.optionMarketAddress && sd.serumMarketAddress) {
+          _serumData[sd.optionMarketAddress] = sd;
+        }
+      }
+      console.log("aaaaaaa",_serumData);
+      
+      let _serumMarkets = {
+        ...currentSerumMarkets,
+        [activePair]: _serumData,
+      };
+      console.log("aasadsa",_serumMarkets);
+      
+      console.log(_serumMarkets);
+      return _serumMarkets;
+    }
+  }
+};
+
+const getSerum = async (m: any, programId: any) => {
+  if (programId) {
+    const data = await getSerumAddressAndMarketData(
+      programId,
+      new PublicKey(m.optionMarketKey),
+      new PublicKey(m.quoteAssetMint.mint),
+      new PublicKey(m.underlyingAssetMint.mint)
+    );
+    return data;
+  }
+};

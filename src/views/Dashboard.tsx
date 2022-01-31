@@ -9,7 +9,11 @@ import "../styles.css";
 // import openinterest from "../data/openInterest.json";
 import btcVolume from "../data/btcVolume.json";
 import { OptionMarketContext } from "../components/context/OptionMarketContextInit";
-import { CurrencyPairs, pairToCoinGecko } from "../utils/global";
+import {
+  CurrencyPairs,
+  dynamicDateSort,
+  pairToCoinGecko,
+} from "../utils/global";
 import { findAllByKey } from "../utils/findAllByKeys";
 import {
   getExpiredData,
@@ -17,6 +21,8 @@ import {
 } from "../utils/OpenInterestUtils";
 import { combinePairDict } from "../utils/optionMarketUtils";
 import ActivePairDropdown from "../components/ActivePairDropdown";
+import { fetchCurrentSerumMarkets, getBiweekVolume } from "../utils/serumUtils";
+import { useProgram } from "../hooks/useProgram";
 
 // Handles the responsive nature of the grid
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -65,9 +71,10 @@ export default function App() {
   const [openCalls, setOpenCalls] = useState<any>();
   const [openPuts, setOpenPuts] = useState<any>();
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
+  const program = useProgram();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentExpiry, setCurrentExpiry] = useState<any>();
+  // const [currentExpiry, setCurrentExpiry] = useState<any>();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [biweeklyVolume, setBiweeklyVolume] = useState<any>();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -121,7 +128,7 @@ export default function App() {
 
       const openActivePair = optionMarketContext.openInterest[activePair];
 
-      const expiryData = getExpiredData(openActivePair, currentExpiry);
+      const expiryData = getExpiredData(openActivePair);
 
       setExpiryData(expiryData);
 
@@ -165,7 +172,6 @@ export default function App() {
           puts: tempo[key].puts,
         };
       });
-      console.log(shapedData);
 
       setShapedData(shapedData);
 
@@ -183,15 +189,23 @@ export default function App() {
       );
 
       if (_singlePairOptionMarkets) {
-        // TODO: MAKE GLOBAL CONTEXT:
-        // setSinglePairOptionMarkets(_singlePairOptionMarkets);
+        optionMarketContext.updateSinglePairOptionMarkets(
+          _singlePairOptionMarkets
+        );
         const openInterest: any = await getOpenInterestFromPair(
           _singlePairOptionMarkets
         );
         let newOpenInterest = { ...optionMarketContext.openInterest };
         newOpenInterest[pair] = openInterest[pair];
         optionMarketContext.updateOpenInterest(newOpenInterest);
-        console.log(newOpenInterest);
+        if (optionMarketContext.serumMarkets) {
+          fetchSerumData(
+            _singlePairOptionMarkets,
+            optionMarketContext.serumMarkets
+          );
+        } else {
+          fetchSerumData(_singlePairOptionMarkets, {});
+        }
       }
     }
     if (activePair && optionMarketContext.optionMarkets) {
@@ -200,75 +214,107 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePair]);
 
-  // // VOLUME DATA
-  //   useEffect(() => {
-  //     if (
-  //       optionMarketContext.serumMarkets &&
-  //       optionMarketContext.serumMarkets[activePair]
-  //     ) {
-  //       let serumMarketsToGetVolumeFrom = [];
-  //       console.log("HEEEEE --------------", optionMarketContext.serumMarkets);
-  //       // get optionMarkets with same expiry
-  //       for (const oms in optionMarketContext.optionMarkets) {
-  //         for (const om of optionMarketContext.optionMarkets[oms]) {
-  //           if (om.expiration === currentExpiry) {
-  //             if (
-  //               optionMarketContext.serumMarkets[activePair][om.optionMarketKey]
-  //             ) {
-  //               serumMarketsToGetVolumeFrom.push(
-  //                 optionMarketContext.serumMarkets[activePair][om.optionMarketKey]
-  //                   .serumMarketAddress
-  //               );
-  //             }
-  //           }
-  //         }
-  //       }
+  const fetchSerumData = async (
+    singlePairOptionMarkets: any,
+    serumMarkets: any
+  ) => {
+    if (optionMarketContext.singlePairOptionMarkets && program) {
+      const _serumMarkets = await fetchCurrentSerumMarkets(
+        serumMarkets,
+        singlePairOptionMarkets,
+        program.programId,
+        activePair
+      );
+      optionMarketContext.updateSerumMarkets(_serumMarkets);
+    }
+  };
 
-  //       //   getBiweekVol(serumMarketsToGetVolumeFrom);
-  //     }
-  //   }, [optionMarketContext.serumMarkets, currentExpiry]);
+  // VOLUME DATA
+  useEffect(() => {
+    if (
+      optionMarketContext.serumMarkets &&
+      optionMarketContext.serumMarkets[activePair]
+    ) {
+      let serumMarketsToGetVolumeFrom = [];
+      console.log("HEEEEE --------------", optionMarketContext.serumMarkets);
+      // get optionMarkets with same expiry
+      for (const oms in optionMarketContext.optionMarkets) {
+        for (const om of optionMarketContext.optionMarkets[oms]) {
+          if (
+            optionMarketContext.serumMarkets[activePair][om.optionMarketKey]
+          ) {
+            serumMarketsToGetVolumeFrom.push(
+              optionMarketContext.serumMarkets[activePair][om.optionMarketKey]
+                .serumMarketAddress
+            );
+          }
+        }
+      }
+      console.log(serumMarketsToGetVolumeFrom);
 
-  //   const getBiweekVol = async (addresses: string[]) => {
-  //     const aggregatedData = [];
-  //     for (const address of addresses) {
-  //       const data = await getBiweekVolume(address);
-  //       console.log(data);
+      getBiweekVol(serumMarketsToGetVolumeFrom);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionMarketContext.serumMarkets]);
 
-  //       const extractedVolume = data.map((p: any) => {
-  //         return {
-  //           x: p.interval.split("T")[0].split("2022-")[1],
-  //           y: p.volume.slice(0, -9), // is decimal correct??
-  //         };
-  //       });
+  const getBiweekVol = async (addresses: string[]) => {
+    const aggregatedData: any[] = [];
+    for (const address of addresses) {
+      const data = await getBiweekVolume(address);
+      console.log(data);
+      data.forEach((d: any) => aggregatedData.push(d));
+    }
 
-  //       const volumeWeeks = [
-  //         {
-  //           id: "volume",
-  //           color: "#91ffd7",
-  //           data: extractedVolume,
-  //         },
-  //       ];
-  //       const extractedTrades = data.map((p: any) => {
-  //         return {
-  //           x: p.interval.split("T")[0].split("2022-")[1],
-  //           y: p.trades,
-  //         };
-  //       });
+    const mergedWeekVolume = aggregatedData.reduce((a, c) => {
+      let x = a.find((e: any) => e.interval === c.interval);
+      let obj = { ...c, volume: parseInt(c.volume) };
+      if (!x) {
+        a.push(Object.assign({}, obj));
+      } else {
+        x.volume += obj.volume;
+        x.trades += obj.trades;
+      }
+      return a;
+    }, []);
 
-  //       const tradesWeeks = [
-  //         {
-  //           id: "volume",
-  //           color: "#91ffd7",
-  //           data: extractedTrades,
-  //         },
-  //       ];
+    console.log(mergedWeekVolume);
+    mergedWeekVolume.sort(dynamicDateSort("interval"));
 
-  //       // setBiweeklyVolume(volumeWeeks);
-  //       // setBiweeklyTrades(tradesWeeks); #
+    const extractedVolume = mergedWeekVolume.map((p: any) => {
+      return {
+        x: p.interval.split("T")[0].split("2022-")[1],
+        y: p.volume, // p.volume.slice(0, -9), // is decimal correct??
+      };
+    });
 
-  //       //   console.log(address, volumeWeeks, tradesWeeks);
-  //     }
-  //   };
+    const volumeWeeks = [
+      {
+        id: "volume",
+        color: "#91ffd7",
+        data: extractedVolume,
+      },
+    ];
+    const extractedTrades = mergedWeekVolume.map((p: any) => {
+      return {
+        x: p.interval.split("T")[0].split("2022-")[1],
+        y: p.trades,
+      };
+    });
+
+    const tradesWeeks = [
+      {
+        id: "volume",
+        color: "#91ffd7",
+        data: extractedTrades,
+      },
+    ];
+    console.log("volweeks",volumeWeeks);
+    
+    setBiweeklyVolume(volumeWeeks);
+    setBiweeklyTrades(tradesWeeks);
+
+    console.log(volumeWeeks, tradesWeeks);
+  };
 
   return (
     <div>

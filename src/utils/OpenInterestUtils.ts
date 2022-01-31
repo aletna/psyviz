@@ -198,7 +198,7 @@ const getTokenCirculation = async (market: any) => {
   }
 };
 
-export const getExpiredData = (openActivePair: any, currentExpiry: any) => {
+export const getExpiredData = (openActivePair: any) => {
   // const openData: any = openActivePair[currentExpiry];
   let expiryData: any = Object.keys(openActivePair).map(function (key) {
     return {

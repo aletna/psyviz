@@ -1,6 +1,5 @@
 import { Program } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
-import { createContext, useState } from "react";
+import { createContext } from "react";
 import { ReactNode, useContext, useEffect } from "react";
 import { useProgram } from "../../hooks/useProgram";
 import { getOpenInterestFromPair } from "../../utils/OpenInterestUtils";
@@ -9,12 +8,16 @@ import {
   getAllOpenPsyOptionMarkets,
   getParsedMarketsGroupedByPair,
 } from "../../utils/psyOptionMarketUtils";
-import { getSerumAddressAndMarketData } from "../../utils/serumUtils";
+import {
+  fetchCurrentSerumMarkets,
+} from "../../utils/serumUtils";
 import { getTokenDict } from "../../utils/tokenUtls";
 
 interface OptionMarketContextProps {
   optionMarkets: any;
   updateOptionMarkets: (_optionMarkets: any) => void;
+  singlePairOptionMarkets: any;
+  updateSinglePairOptionMarkets: (_optionMarkets: any) => void;
   openInterest: any;
   updateOpenInterest: (_openInterest: any) => void;
   tokenDict: any;
@@ -26,6 +29,8 @@ interface OptionMarketContextProps {
 export const OptionMarketContext = createContext<OptionMarketContextProps>({
   optionMarkets: {},
   updateOptionMarkets: (_optionMarkets: any) => {},
+  singlePairOptionMarkets: {},
+  updateSinglePairOptionMarkets: (_optionMarkets: any) => {},
   openInterest: {},
   updateOpenInterest: (_openInterest: any) => {},
   tokenDict: {},
@@ -43,7 +48,6 @@ type Props = {
 
 const OptionMarketContextInit = ({ children }: Props) => {
   const optionMarketContext = useContext(OptionMarketContext);
-  const [singlePairOptionMarkets, setSinglePairOptionMarkets] = useState<any>();
   const program = useProgram();
 
   useEffect(() => {
@@ -56,11 +60,11 @@ const OptionMarketContextInit = ({ children }: Props) => {
   }, [program]);
 
   useEffect(() => {
-    if (singlePairOptionMarkets) {
+    if (optionMarketContext.singlePairOptionMarkets) {
       fetchSerumData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [singlePairOptionMarkets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionMarketContext.singlePairOptionMarkets]);
 
   const fetchTokenDict = async () => {
     const _tokenDict = await getTokenDict();
@@ -70,7 +74,7 @@ const OptionMarketContextInit = ({ children }: Props) => {
   const fetchAllOpenOptionMarkets = async (program: Program) => {
     const _optionMarkets = await getAllOpenPsyOptionMarkets(program);
     console.log(_optionMarkets);
-  
+
     const _optionMarketsByPair = await getParsedMarketsGroupedByPair(
       _optionMarkets
     );
@@ -86,7 +90,9 @@ const OptionMarketContextInit = ({ children }: Props) => {
     );
 
     if (_singlePairOptionMarkets) {
-      setSinglePairOptionMarkets(_singlePairOptionMarkets);
+      optionMarketContext.updateSinglePairOptionMarkets(
+        _singlePairOptionMarkets
+      );
       const openInterest: any = await getOpenInterestFromPair(
         _singlePairOptionMarkets
       );
@@ -97,52 +103,23 @@ const OptionMarketContextInit = ({ children }: Props) => {
   };
 
   const fetchSerumData = async () => {
-    let _serumData: any = {};
-    // TODO: MAKE GLOBAL CONTEXT
-    if (singlePairOptionMarkets && singlePairOptionMarkets["BTC/USDC"]) {
-      let om;
-      if (
-        singlePairOptionMarkets["BTC/USDC"] &&
-        singlePairOptionMarkets["USDC/BTC"]
-      ) {
-        om = singlePairOptionMarkets["BTC/USDC"].concat(
-          singlePairOptionMarkets["USDC/BTC"]
-        );
-      } else if (singlePairOptionMarkets["BTC/USDC"]) {
-        om = singlePairOptionMarkets["BTC/USDC"];
-      } else if (singlePairOptionMarkets["USDC/BTC"]) {
-        om = singlePairOptionMarkets["USDC/BTC"];
-      }
-      if (om) {
-        for (const m in om) {
-          const sd = await getSerum(om[m]);
-
-          if (sd && sd.optionMarketAddress && sd.serumMarketAddress) {
-            _serumData[sd.optionMarketAddress] = sd;
-          }
-        }
-        let _serumMarkets = {
-          ...optionMarketContext.serumMarkets,
-          "BTC/USDC": _serumData,
-        };
-        console.log(_serumMarkets);
-
-        optionMarketContext.updateSerumMarkets(_serumMarkets);
-      }
-    }
-  };
-
-  const getSerum = async (m: any) => {
-    if (program) {
-      const data = await getSerumAddressAndMarketData(
+    console.log("yuuip");
+    
+    if (
+      optionMarketContext.serumMarkets &&
+      optionMarketContext.singlePairOptionMarkets &&
+      program
+    ) {
+      const _serumMarkets = await fetchCurrentSerumMarkets(
+        optionMarketContext.serumMarkets,
+        optionMarketContext.singlePairOptionMarkets,
         program.programId,
-        new PublicKey(m.optionMarketKey),
-        new PublicKey(m.quoteAssetMint.mint),
-        new PublicKey(m.underlyingAssetMint.mint)
+        "BTC/USDC"
       );
-      return data;
+      optionMarketContext.updateSerumMarkets(_serumMarkets);
     }
   };
+
   return <div>{children}</div>;
 };
 
