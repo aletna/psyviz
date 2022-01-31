@@ -16,7 +16,6 @@ import { endpoint } from "./utils/global";
 import Dashboard from "./views/Dashboard";
 import ContextProvider from "./components/context/ContextProvider";
 import Footer from "./components/layout/Footer";
-import Navbar from "./components/layout/Navbar";
 
 function App() {
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'

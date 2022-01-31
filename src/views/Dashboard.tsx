@@ -18,7 +18,6 @@ import {
   getOpenInterestFromPair,
 } from "../utils/OpenInterestUtils";
 import { combinePairDict } from "../utils/optionMarketUtils";
-import ActivePairDropdown from "../components/ActivePairDropdown";
 import {
   fetchCurrentSerumMarkets,
   getDailyStatsAndVolume,
