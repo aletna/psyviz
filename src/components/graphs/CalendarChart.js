@@ -6,14 +6,12 @@ import { ResponsiveTimeRange } from "@nivo/calendar";
 // website examples showcase many properties,
 // you'll often use just a few of them.
 export default function CalendarChart({ data /* see data tab */ }) {
-  console.log("final callllll", data);
   const calMin = data.reduce(function (prev, curr) {
     return prev.day < curr.day ? prev : curr;
   });
   const calMax = data.reduce(function (prev, curr) {
     return prev.day > curr.day ? prev : curr;
   });
-  console.log(">>>>", calMin, calMax);
   return (
     <ResponsiveTimeRange
       data={data}
