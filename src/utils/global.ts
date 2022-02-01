@@ -49,10 +49,18 @@ export const allMints: any = {
     logoURI:
       "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
     mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-    symbol: "USD Coin",
-    name: "USDC",
+    symbol: "USDC",
+    name: "USD Coin",
   },
 };
+
+export const symbolToMint: any = {
+  BTC: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",
+  USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  SOL: "So11111111111111111111111111111111111111112",
+  soETH: "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk",
+};
+
 export const CurrencyPairs = {
   BTC_USDC: "BTC/USDC",
 };
@@ -84,3 +92,10 @@ export function capitalizeFirstLetter(string: string) {
 }
 
 export const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
+
+export const formatNumber = (n: number) => {
+  return n
+    .toFixed(2)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};

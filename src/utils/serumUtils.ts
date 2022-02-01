@@ -109,10 +109,10 @@ const _getSerumMarketData = async (market: Market) => {
   //   }
   // }
 
-  // const asks = await market.loadAsks(connection);
-  // const bids = await market.loadBids(connection);
+  const asks = await market.loadAsks(connection);
+  const bids = await market.loadBids(connection);
   // Full orderbook data
-  // const orderBook = await getOrderBookData(asks, bids);
+  const orderBook = await getOrderBookData(asks, bids);
 
   return {
     baseMintAddress,
@@ -120,7 +120,7 @@ const _getSerumMarketData = async (market: Market) => {
     asksAddress,
     bidsAddress,
     // eventQueue,
-    // orderBook,
+    orderBook,
     // fills: newFills,
   };
 };

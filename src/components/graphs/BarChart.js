@@ -9,7 +9,7 @@ export default function BarChart({ data, keys, group, layout }) {
           data={data}
           keys={keys}
           indexBy="label"
-          groupMode={group ? "grouped" : "stacked"}
+          groupMode={group}
           enableLabel={false}
           layout={layout}
           margin={{ top: 30, right: 130, bottom: 50, left: 60 }}

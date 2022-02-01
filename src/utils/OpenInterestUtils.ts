@@ -7,19 +7,7 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import moment from "moment";
 import { findAllByKey } from "./findAllByKeys";
-import { getParsedMarketsGroupedByPair } from "./psyOptionMarketUtils";
 import { getAccountInfo, getProgramAccounts } from "./solanaUtils";
-
-export const getOpenInterest = async (
-  optionMarkets: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>[]
-) => {
-  // ALL MARKETS GROUPED BY PAIR
-  const optionMarketsByPair = await getParsedMarketsGroupedByPair(
-    optionMarkets
-  );
-  const markets = await getOpenInterestFromPair(optionMarketsByPair);
-  return markets;
-};
 
 export const getOpenInterestFromPair = async (
   optionMarketsByPair: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>[]

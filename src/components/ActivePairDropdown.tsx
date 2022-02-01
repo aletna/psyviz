@@ -17,7 +17,10 @@ export default function ActivePairDropdown(props: any) {
       </div>
 
       {showDropdown && (
-        <ul className="p-2 mt-3 text-md text-white  shadow menu dropdown-content-custom bg-base-100 rounded-box w-52">
+        <ul
+          style={{ backgroundColor: "#2a2e37" }}
+          className="p-2 mt-3 text-md text-white  shadow menu dropdown-content-custom bg-base-100 rounded-box w-52"
+        >
           <li>
             {
               // eslint-disable-next-line jsx-a11y/anchor-is-valid

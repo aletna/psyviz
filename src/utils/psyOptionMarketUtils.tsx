@@ -1,9 +1,4 @@
-import { Program, ProgramAccount } from "@project-serum/anchor";
-import { Idl, IdlTypeDef } from "@project-serum/anchor/dist/cjs/idl";
-import {
-  IdlTypes,
-  TypeDef,
-} from "@project-serum/anchor/dist/cjs/program/namespace/types";
+import { Program } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { allMints } from "./global";
 import { parseOptionMarket } from "./optionMarketUtils";
@@ -11,26 +6,45 @@ import { deriveSerumMarketAddress, getSerumMarketData } from "./serumUtils";
 import { getAccountInfo, getProgramAccounts } from "./solanaUtils";
 import { optionMarketIsNotExpired } from "./utils";
 
-export const getAllPsyOptionMarkets = async (program: Program) => {
-  const optionMarkets = await program.account.optionMarket.all();
-  return optionMarkets;
+export const isActiveMainPairMarket = (optionMarket: any) => {
+  if (
+    allMints[optionMarket.account.quoteAssetMint.toBase58()] &&
+    allMints[optionMarket.account.underlyingAssetMint.toBase58()] &&
+    optionMarketIsNotExpired(optionMarket)
+  ) {
+    return true;
+  }
 };
 
-export const getAllOpenPsyOptionMarkets = async (program: Program) => {
-  const optionMarkets = await getAllPsyOptionMarkets(program);
-  let filteredOptionMarkets = [];
+export const getParsedMarketsGroupedByPair = async (program: Program) => {
+  const optionMarkets = await program.account.optionMarket.all();
+  let markets: any = {};
   for (const _optionMarket of optionMarkets) {
-    if (
-      allMints[_optionMarket.account.quoteAssetMint.toBase58()] &&
-      allMints[_optionMarket.account.underlyingAssetMint.toBase58()]
-    ) {
-      filteredOptionMarkets.push(_optionMarket);
+    if (isActiveMainPairMarket(_optionMarket)) {
+      const parsedOptionMarket = await parseOptionMarket(_optionMarket);
+      if (
+        parsedOptionMarket &&
+        parsedOptionMarket.quoteAssetMint &&
+        parsedOptionMarket.underlyingAssetMint
+      ) {
+        const pair =
+          parsedOptionMarket.quoteAssetMint.symbol +
+          "/" +
+          parsedOptionMarket.underlyingAssetMint.symbol;
+        if (markets[pair]) {
+          markets[pair].push(parsedOptionMarket);
+        } else {
+          markets[pair] = [parsedOptionMarket];
+        }
+      } else {
+        console.error(
+          "No parsedOptionMarket (and / or mint)",
+          parsedOptionMarket
+        );
+      }
     }
   }
-  const filteredOptionMarkets2 = filteredOptionMarkets.filter(
-    optionMarketIsNotExpired
-  );
-  return filteredOptionMarkets2;
+  return markets;
 };
 
 export const getOptionMintInfo = async (optionMint: PublicKey) => {
@@ -74,41 +88,4 @@ export const getSerumMarket = async (
     return [serumMarket, serumMarketKey];
   }
   return;
-};
-
-export const getParsedOptionMarket = async (
-  optionMarket: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>
-) => {
-  const _optionMarket = await parseOptionMarket(optionMarket);
-  return _optionMarket;
-};
-
-export const getParsedMarketsGroupedByPair = async (
-  optionMarkets: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>[]
-) => {
-  let markets: any = {};
-  for (const optionMarket of optionMarkets) {
-    const parsedOptionMarket = await getParsedOptionMarket(optionMarket);
-    if (
-      parsedOptionMarket &&
-      parsedOptionMarket.quoteAssetMint &&
-      parsedOptionMarket?.underlyingAssetMint
-    ) {
-      const pair =
-        parsedOptionMarket?.quoteAssetMint.symbol +
-        "/" +
-        parsedOptionMarket?.underlyingAssetMint.symbol;
-      if (markets[pair]) {
-        markets[pair].push(parsedOptionMarket);
-      } else {
-        markets[pair] = [parsedOptionMarket];
-      }
-    } else {
-      console.error(
-        "No parsedOptionMarket (and / or mint)",
-        parsedOptionMarket
-      );
-    }
-  }
-  return markets;
 };

@@ -5,7 +5,10 @@ import {
   TypeDef,
 } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { allMints } from "./global";
-import { getTokenData } from "./tokenUtls";
+import {
+  getTokenBalance,
+  // getTokenData
+} from "./tokenUtls";
 
 export const parseOptionMarket = async (
   optionMarket: ProgramAccount<TypeDef<IdlTypeDef, IdlTypes<Idl>>>
@@ -15,52 +18,61 @@ export const parseOptionMarket = async (
     // const optionMarketKey = new PublicKey(opt.PublicKey.toString());
 
     const optionMarketKey = optionMarket.publicKey.toBase58();
-
     //   expiration
     // const expiration = moment.unix(exp).format("MM/DD/YYYY");
     const expiration = exp;
 
     // POOLS
-    // const quoteAssetPoolPK = optionMarket.account.quoteAssetPool.toBase58();
-    // const underlyingAssetPoolPK =
-    //   optionMarket.account.quoteAssetPool.toBase58();
+    const quoteAssetPoolPK = optionMarket.account.quoteAssetPool.toBase58();
+    const underlyingAssetPoolPK =
+      optionMarket.account.underlyingAssetPool.toBase58();
     const quoteAssetMintString = optionMarket.account.quoteAssetMint.toBase58();
     const underlyingAssetMintString =
       optionMarket.account.underlyingAssetMint.toBase58();
 
     let quoteAssetMint;
     let underlyingAssetMint;
+    let quoteAssetPoolPKBalance;
+    let underlyingAssetPoolPKBalance;
+    let quoteAssetPool;
+    let underlyingAssetPool;
 
     if (allMints[quoteAssetMintString] && allMints[underlyingAssetMintString]) {
       const promises = [
-        [getTokenData, optionMarket.account.quoteAssetMint.toBase58()],
-        [getTokenData, optionMarket.account.underlyingAssetMint.toBase58()],
-        // [getTokenBalance, quoteAssetPoolPK],
-        // [getTokenBalance, underlyingAssetPoolPK],
+        // [getTokenData, optionMarket.account.quoteAssetMint.toBase58()],
+        // [getTokenData, optionMarket.account.underlyingAssetMint.toBase58()],
+        [getTokenBalance, quoteAssetPoolPK],
+        [getTokenBalance, underlyingAssetPoolPK],
       ];
 
       [
-        quoteAssetMint,
-        underlyingAssetMint,
-        // quoteAssetPoolPKBalance,
-        // underlyingAssetPoolPKBalance,
+        // quoteAssetMint,
+        // underlyingAssetMint,
+        quoteAssetPoolPKBalance,
+        underlyingAssetPoolPKBalance,
       ] = await Promise.all(promises.map((fn) => fn[0](fn[1])));
+
+      quoteAssetMint = allMints[quoteAssetMintString];
+      underlyingAssetMint = allMints[underlyingAssetMintString];
+      
+      quoteAssetPool = {
+        publicKey: quoteAssetPoolPK,
+        balance: quoteAssetPoolPKBalance.balance,
+        decimals: quoteAssetPoolPKBalance.decimals,
+        tokenMint: quoteAssetMintString,
+      };
+
+      underlyingAssetPool = {
+        publicKey: underlyingAssetPoolPK,
+        balance: underlyingAssetPoolPKBalance.balance,
+        decimals: underlyingAssetPoolPKBalance.decimals,
+        tokenMint: underlyingAssetMintString,
+      };
     } else {
+      // won't reach that for now since we're only looking at 3 main pairs
       quoteAssetMint = quoteAssetMintString;
       underlyingAssetMint = underlyingAssetMintString;
     }
-
-    // const quoteAssetPool = {
-    //   publicKey: quoteAssetPoolPK,
-    //   balance: quoteAssetPoolPKBalance.balance,
-    //   decimals: quoteAssetPoolPKBalance.decimals,
-    // };
-
-    // const underlyingAssetPool = {
-    //   publicKey: underlyingAssetPoolPK,
-    //   balance: underlyingAssetPoolPKBalance.balance,
-    //   decimals: underlyingAssetPoolPKBalance.decimals,
-    // };
 
     // AMOUNTS per contract
     const quoteAmountPerContract =
@@ -85,11 +97,11 @@ export const parseOptionMarket = async (
       expiration,
 
       quoteAssetMint,
-      // quoteAssetPool,
+      quoteAssetPool,
       quoteAmountPerContract,
 
       underlyingAssetMint,
-      // underlyingAssetPool,
+      underlyingAssetPool,
       underlyingAmountPerContract,
 
       // exerciseFeeAccount,

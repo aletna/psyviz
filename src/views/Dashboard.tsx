@@ -10,7 +10,6 @@ import { OptionMarketContext } from "../components/context/OptionMarketContextIn
 import {
   capitalizeFirstLetter,
   CurrencyPairs,
-  // delay,
   dynamicDateSort,
   pairToCoinGecko,
 } from "../utils/global";
@@ -27,6 +26,8 @@ import {
 import { useProgram } from "../hooks/useProgram";
 import CalendarChart from "../components/graphs/CalendarChart";
 import Navbar from "../components/layout/Navbar";
+import Stats from "../components/Stats";
+import Skeleton from "../components/Skeleton";
 
 // Handles the responsive nature of the grid
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -48,8 +49,9 @@ export default function App() {
   const [calendarData, setCalendarData] = useState<any>();
   const [biweeklyVolume, setBiweeklyVolume] = useState<any>();
   const [biweeklyTrades, setBiweeklyTrades] = useState<any>();
-  // const [orderBook, setOrderBook] = useState<any>();
+  const [orderBook, setOrderBook] = useState<any>();
   const [serumLoadProgress, setSerumLoadProgress] = useState<any>({});
+  const [TVL, setTVL] = useState(-1);
 
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
@@ -65,10 +67,13 @@ export default function App() {
   const program = useProgram();
 
   const optionMarketContext = useContext(OptionMarketContext);
+
+  // on load
   useEffect(() => {
     optionMarketContext.updateActivePair("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   // Coingecko data
   useEffect(() => {
     async function fetchPrice(currency: string) {
@@ -102,6 +107,61 @@ export default function App() {
       };
     }
   }, [activePair]);
+
+  useEffect(() => {
+    if (currencyPrice && optionMarketContext.singlePairOptionMarkets) {
+      console.log("CURRENCY PRICE USING", currencyPrice);
+      let totalValue = 0;
+      for (const marketSide in optionMarketContext.singlePairOptionMarkets) {
+        for (const market of optionMarketContext.singlePairOptionMarkets[
+          marketSide
+        ]) {
+          console.log("");
+          let quoteValue;
+          if (market.quoteAssetMint.symbol === "USDC") {
+            quoteValue =
+              market.quoteAssetPool.balance /
+              10 ** market.quoteAssetPool.decimals;
+          } else {
+            quoteValue =
+              (market.quoteAssetPool.balance /
+                10 ** market.quoteAssetPool.decimals) *
+              currencyPrice;
+          }
+
+          console.log(
+            "quote:",
+            market.quoteAssetPool,
+            quoteValue,
+            market.quoteAssetMint.symbol
+          );
+          totalValue += quoteValue;
+
+          let underlyingValue;
+          if (market.underlyingAssetMint.symbol === "USDC") {
+            underlyingValue =
+              market.underlyingAssetPool.balance /
+              10 ** market.underlyingAssetPool.decimals;
+          } else {
+            underlyingValue =
+              (market.underlyingAssetPool.balance /
+                10 ** market.underlyingAssetPool.decimals) *
+              currencyPrice;
+          }
+          console.log(
+            "underlying:",
+            market.underlyingAssetPool,
+            underlyingValue,
+            market.underlyingAssetMint.symbol
+          );
+          console.log("");
+          totalValue += underlyingValue;
+        }
+      }
+      console.log("TOTAL VALUE", totalValue);
+      setTVL(totalValue);
+    }
+  }, [currencyPrice, optionMarketContext.singlePairOptionMarkets]);
 
   // OPEN INTEREST DATA
   useEffect(() => {
@@ -170,6 +230,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.openInterest]);
 
+  // UPDATE ACTIVE PAIR
   useEffect(() => {
     async function updateActivePair(pair: string) {
       setOIELoading(true);
@@ -207,55 +268,52 @@ export default function App() {
     }
     if (activePair && optionMarketContext.optionMarkets) {
       updateActivePair(activePair);
+      console.log("YES switching.....");
+    } else {
+      console.log("NO switching.....");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePair]);
 
   // TODO: ORDERBOOKDATA
-  // useEffect(() => {
-  //   if (
-  //     optionMarketContext.serumMarkets &&
-  //     optionMarketContext.serumMarkets[activePair]
-  //   ) {
-  //     let asks = 0;
-  //     let buys = 0;
-  //     let filteredOrderBook = [];
-  //     for (const market in optionMarketContext.serumMarkets[activePair]) {
-  //       const _orderBook =
-  //         optionMarketContext.serumMarkets[activePair][market].orderBook;
-  //       if (_orderBook && _orderBook.length > 0) {
-  //         for (const ob of _orderBook) {
-  //           console.log(ob);
-  //           console.log("");
+  useEffect(() => {
+    if (
+      optionMarketContext.serumMarkets &&
+      optionMarketContext.serumMarkets[activePair]
+    ) {
+      let filteredOrderBook = [];
+      for (const market in optionMarketContext.serumMarkets[activePair]) {
+        const _orderBook =
+          optionMarketContext.serumMarkets[activePair][market].orderBook;
+        if (_orderBook && _orderBook.length > 0) {
+          for (const ob of _orderBook) {
+            console.log(ob);
+            console.log("");
 
-  //           console.log("Price Lots:", ob.priceLots.toString());
-  //           console.log("Price:", ob.price);
-  //           console.log("Size:", ob.size);
-  //           console.log("Side:", ob.side);
-  //           console.log("");
-  //           filteredOrderBook.push({
-  //             priceLots: parseInt(ob.priceLots.toString()),
-  //             price: ob.price,
-  //             size: ob.size,
-  //             side: ob.side,
-  //           });
+            console.log("Price Lots:", ob.priceLots.toString());
+            console.log("Price:", ob.price);
+            console.log("Size:", ob.size);
+            console.log("Side:", ob.side);
+            console.log("");
+            filteredOrderBook.push({
+              priceLots: parseInt(ob.priceLots.toString()),
+              price: ob.price,
+              size: ob.size,
+              side: ob.side,
+            });
+            setOrderBook(filteredOrderBook);
+          }
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionMarketContext.serumMarkets]);
 
-  //           // if (ob.side == "buy") {
-  //           // } else {
-  //           //   console.log(ob.side);
-  //           // }
-  //           setOrderBook(filteredOrderBook);
-  //         }
-  //       }
-  //     }
-  //   }
-  // }, [optionMarketContext.serumMarkets]);
-
-  // useEffect(() => {
-  //   if (orderBook) {
-  //     console.log("THEEEEE order book:", orderBook);
-  //   }
-  // }, [orderBook]);
+  useEffect(() => {
+    if (orderBook) {
+      console.log("THEEEEE order book:", orderBook);
+    }
+  }, [orderBook]);
 
   useEffect(() => {
     if (dataVolume && VMLoading) {
@@ -279,6 +337,8 @@ export default function App() {
   }, [calendarData]);
 
   useEffect(() => {
+    console.log("biweeklyVolume", biweeklyVolume);
+
     if (biweeklyVolume && DVLoading) {
       setDVLoading(false);
     }
@@ -469,6 +529,10 @@ export default function App() {
         </div>
       )}
       <div className="w-full pb-5 px-5 ">
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 mx-2">
+          <Stats activePair={activePair} TVL={TVL} />
+        </div>
+
         <ResponsiveGridLayout
           className=""
           breakpoints={breakpoints}
@@ -495,13 +559,13 @@ export default function App() {
             key="2"
             data-grid={{ x: 1, y: 0, w: 1, h: 2, static: true }}
           >
-            <h3 className="grid-header">Volume Metrics</h3>
+            <h3 className="grid-header">Serum Volume Metrics</h3>
             {dataVolume && !VMLoading ? (
               <>
                 <BarChart
                   data={dataVolume}
                   keys={["volume"]}
-                  group={null}
+                  group={"stacked"}
                   layout="horizontal"
                 />
               </>
@@ -514,13 +578,13 @@ export default function App() {
             key="3"
             data-grid={{ x: 2, y: 0, w: 1, h: 2, static: true }}
           >
-            <h3 className="grid-header">Trade Metrics</h3>
+            <h3 className="grid-header">Serum Trade Metrics</h3>
             {dataTrades && !TMLoading ? (
               <>
                 <BarChart
                   data={dataTrades}
                   keys={["trades"]}
-                  group={null}
+                  group={"stacked"}
                   layout="horizontal"
                 />
               </>
@@ -550,7 +614,7 @@ export default function App() {
               <BarChart
                 data={shapedData}
                 keys={optionBars}
-                group={true}
+                group="grouped"
                 layout="vertical"
               />
             ) : (
@@ -562,17 +626,9 @@ export default function App() {
             key="6"
             data-grid={{ x: 2, y: 2, w: 2, h: 3, static: true }}
           >
-            <h3 className="grid-header">Daily Volume</h3>
+            <h3 className="grid-header">Serum Daily Volume</h3>
             {biweeklyVolume && !DVLoading ? (
-              <>
-                {biweeklyVolume[0].data.length === 0 ? (
-                  <div className="grid-text">
-                    Oops, looks like there were no trades in the past 2 weeks.
-                  </div>
-                ) : (
-                  <LineChart data={biweeklyVolume} legend="Day" />
-                )}
-              </>
+              <LineChart data={biweeklyVolume} legend="Day" />
             ) : (
               <Skeleton />
             )}
@@ -588,7 +644,7 @@ export default function App() {
                 data={expiryData}
                 keys={optionBars}
                 layout="vertical"
-                group
+                group="stacked"
               />
             ) : (
               <Skeleton />
@@ -599,17 +655,9 @@ export default function App() {
             key="8"
             data-grid={{ x: 1, y: 5, w: 1, h: 2 }}
           >
-            <h3 className="grid-header">Daily # of Trades</h3>
+            <h3 className="grid-header">Serum Daily # of Trades</h3>
             {calendarData && !CDLoading ? (
-              <>
-                {calendarData.length > 0 ? (
-                  <CalendarChart data={calendarData} />
-                ) : (
-                  <div>
-                    Oops, looks like there were no trades in the past 2 weeks.
-                  </div>
-                )}
-              </>
+              <CalendarChart data={calendarData} />
             ) : (
               <Skeleton />
             )}
@@ -619,18 +667,10 @@ export default function App() {
             key="9"
             data-grid={{ x: 3, y: 5, w: 2, h: 2 }}
           >
-            <h3 className="grid-header">Daily # of Trades</h3>
+            <h3 className="grid-header">Serum Daily # of Trades</h3>
 
             {biweeklyTrades && !DTLoading ? (
-              <>
-                {biweeklyTrades[0].data.length === 0 ? (
-                  <div className="grid-text">
-                    Oops, looks like there were no trades in the past 2 weeks.
-                  </div>
-                ) : (
-                  <LineChart data={biweeklyTrades} legend="Day" />
-                )}
-              </>
+              <LineChart data={biweeklyTrades} legend="Day" />
             ) : (
               <Skeleton />
             )}
@@ -672,11 +712,3 @@ export default function App() {
     </div>
   );
 }
-
-const Skeleton = () => {
-  return (
-    <div className=" h-full p-5 w-full mx-auto animate-pulse pb-7 ">
-      <div className="rounded-md animate-pulse flex bg-gray-200 h-full  w-full"></div>
-    </div>
-  );
-};

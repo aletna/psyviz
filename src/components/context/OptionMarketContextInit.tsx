@@ -1,15 +1,12 @@
 import { Program } from "@project-serum/anchor";
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import { ReactNode, useContext, useEffect } from "react";
 import { useProgram } from "../../hooks/useProgram";
 import { getOpenInterestFromPair } from "../../utils/OpenInterestUtils";
 import { combinePairDict } from "../../utils/optionMarketUtils";
-import {
-  getAllOpenPsyOptionMarkets,
-  getParsedMarketsGroupedByPair,
-} from "../../utils/psyOptionMarketUtils";
+import { getParsedMarketsGroupedByPair } from "../../utils/psyOptionMarketUtils";
 import { fetchCurrentSerumMarkets } from "../../utils/serumUtils";
-import { getTokenDict } from "../../utils/tokenUtls";
+// import { getTokenDict } from "../../utils/tokenUtls";
 
 interface OptionMarketContextProps {
   optionMarkets: any;
@@ -49,12 +46,14 @@ type Props = {
 };
 
 const OptionMarketContextInit = ({ children }: Props) => {
+  const [programInitiated, setProgramInitiated] = useState(false);
   const optionMarketContext = useContext(OptionMarketContext);
   const program = useProgram();
 
   useEffect(() => {
-    if (program) {
-      fetchTokenDict();
+    if (program && !programInitiated) {
+      setProgramInitiated(true);
+      // fetchTokenDict();
       fetchAllOpenOptionMarkets(program);
     }
 
@@ -68,34 +67,35 @@ const OptionMarketContextInit = ({ children }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.singlePairOptionMarkets]);
 
-  const fetchTokenDict = async () => {
-    const _tokenDict = await getTokenDict();
-    optionMarketContext.updateTokenDict(_tokenDict);
-  };
+  // const fetchTokenDict = async () => {
+  //   const _tokenDict = await getTokenDict();
+  //   optionMarketContext.updateTokenDict(_tokenDict);
+  // };
 
   const fetchAllOpenOptionMarkets = async (program: Program) => {
-    const _optionMarkets = await getAllOpenPsyOptionMarkets(program);
-
-    const _optionMarketsByPair = await getParsedMarketsGroupedByPair(
-      _optionMarkets
-    );
+    const _optionMarketsByPair = await getParsedMarketsGroupedByPair(program);
+    console.log("ALL OPTION MARKETS", _optionMarketsByPair);
 
     optionMarketContext.updateOptionMarkets(_optionMarketsByPair);
     fetchOpenInterestForPair(_optionMarketsByPair);
   };
 
   const fetchOpenInterestForPair = async (_optionMarketsByPair: any) => {
+    console.log("HELLO");
     let _singlePairOptionMarkets: any = combinePairDict(
       _optionMarketsByPair,
       "BTC/USDC"
     );
+
     if (_singlePairOptionMarkets) {
       optionMarketContext.updateSinglePairOptionMarkets(
         _singlePairOptionMarkets
       );
+
       const openInterest: any = await getOpenInterestFromPair(
         _singlePairOptionMarkets
       );
+
       let newOpenInterest = { ...optionMarketContext.openInterest };
       newOpenInterest["BTC/USDC"] = openInterest["BTC/USDC"];
       optionMarketContext.updateOpenInterest(newOpenInterest);
