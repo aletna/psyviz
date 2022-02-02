@@ -250,8 +250,6 @@ export const getOrderBooksByOptionKey = async (
   serumMarkets: any,
   activePair: string
 ) => {
-  console.log(singlePairMarket, serumMarkets);
-
   let callResp: any = [];
   let putResp: any = [];
   let allCallExpirations: any = [];
@@ -274,13 +272,8 @@ export const getOrderBooksByOptionKey = async (
       const bids = await _serumMarket.loadBids(connection);
       // Full orderbook data
       const orderBook = await getOrderBookData(asks, bids);
-      console.log(market);
 
       if (market.type === "call") {
-        console.log(market);
-
-        console.log(">>", market, orderBook);
-
         callResp.push({
           orderBook,
           pair: activePair,
@@ -317,8 +310,6 @@ export const getOrderBooksByOptionKey = async (
       }
     }
   }
-  console.log("call resoibnse", callResp);
-  console.log("put resoibnse", putResp);
 
   const combined = {
     call: callResp,
@@ -330,7 +321,6 @@ export const getOrderBooksByOptionKey = async (
     allCallStrikePrices,
     allPutStrikePrices,
   };
-  console.log(combined);
 
   return combined;
 };

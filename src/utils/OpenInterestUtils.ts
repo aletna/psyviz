@@ -7,7 +7,6 @@ export const getOpenInterestFromPair2 = async (
   optionMarketsByPair: any,
   activePair: string
 ) => {
-  console.log(">>>>>>", optionMarketsByPair, activePair);
   let markets: any = {};
   const marketArray = [];
   for (const marketPair in optionMarketsByPair) {
@@ -22,8 +21,6 @@ export const getOpenInterestFromPair2 = async (
           calls = data.calls ? data.calls : 0;
           puts = data.puts ? data.puts : 0;
         }
-        console.log(marketPair, getOptionType(marketPair));
-
         marketArray.push({
           expiration: market.expiration,
           quoteAmountPerContract: market.underlyingAmountPerContract,

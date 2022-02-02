@@ -173,7 +173,11 @@ export default function ResponsiveGridComponent({
           <Skeleton />
         )}
       </div>
-      <div className="grid-cell" key="7" data-grid={{ x: 0, y: 5, w: 2, h: 2 }}>
+      <div
+        className="grid-cell"
+        key="7"
+        data-grid={{ x: 0, y: 5, w: 2, h: 2, static: true }}
+      >
         <h3 className="grid-header">Open Interest by Expiry</h3>
         {expiryData && !OIELoading ? (
           <BarChart
@@ -187,7 +191,11 @@ export default function ResponsiveGridComponent({
           <Skeleton />
         )}
       </div>
-      <div className="grid-cell" key="9" data-grid={{ x: 3, y: 5, w: 2, h: 2 }}>
+      <div
+        className="grid-cell"
+        key="9"
+        data-grid={{ x: 3, y: 5, w: 2, h: 2, static: true }}
+      >
         <h3 className="grid-header">Serum Daily # of Trades</h3>
         {biweeklyTrades && !DTLoading ? (
           <LineChart data={biweeklyTrades} legend="Day" />
@@ -198,118 +206,143 @@ export default function ResponsiveGridComponent({
       <div
         className="grid-cell"
         key="10"
-        data-grid={{ x: 0, y: 7, w: 2, h: 2 }}
+        data-grid={{ x: 0, y: 7, w: 2, h: 2, static: true }}
       >
         <div className="flex items-center">
           <h3 className="grid-header">
             {activePair.split("/")[0]} Calls - Serum Open Orders
           </h3>
-          <div>
-            {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
-            {currentCallStrikePrice && (
-              <Dropdown
-                labelType="strikePrice"
-                currentLabel={currentCallStrikePrice}
-                handleLabelSelection={handleLabelSelection}
-                choices={
-                  fullOrderBookData
-                    ? fullOrderBookData["allCallStrikePrices"]
-                    : []
-                }
-              />
-            )}
+          {currentCallStrikePrice &&
+            currentCallExpiration &&
+            currentCallContractSize && (
+              <div>
+                {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
+                {currentCallStrikePrice && (
+                  <Dropdown
+                    labelType="strikePrice"
+                    currentLabel={currentCallStrikePrice}
+                    handleLabelSelection={handleLabelSelection}
+                    choices={
+                      fullOrderBookData
+                        ? fullOrderBookData["allCallStrikePrices"]
+                        : []
+                    }
+                    optionType="call"
+                  />
+                )}
 
-            {currentCallExpiration && (
-              <Dropdown
-                labelType="expiration"
-                currentLabel={currentCallExpiration}
-                handleLabelSelection={handleLabelSelection}
-                choices={
-                  fullOrderBookData
-                    ? fullOrderBookData["allCallExpirations"]
-                    : []
-                }
-              />
+                {currentCallExpiration && (
+                  <Dropdown
+                    labelType="expiration"
+                    currentLabel={currentCallExpiration}
+                    handleLabelSelection={handleLabelSelection}
+                    choices={
+                      fullOrderBookData
+                        ? fullOrderBookData["allCallExpirations"]
+                        : []
+                    }
+                    optionType="call"
+                  />
+                )}
+                {currentCallContractSize && (
+                  <Dropdown
+                    labelType="contractSize"
+                    currentLabel={currentCallContractSize}
+                    handleLabelSelection={handleLabelSelection}
+                    choices={
+                      fullOrderBookData
+                        ? fullOrderBookData["allCallContractSizes"]
+                        : []
+                    }
+                    optionType="call"
+                  />
+                )}
+              </div>
             )}
-            {currentCallContractSize && (
-              <Dropdown
-                labelType="contractSize"
-                currentLabel={currentCallContractSize}
-                handleLabelSelection={handleLabelSelection}
-                choices={
-                  fullOrderBookData
-                    ? fullOrderBookData["allCallContractSizes"]
-                    : []
-                }
-              />
-            )}
-          </div>
         </div>
-
-        <BarChart
-          data={callOrderBookData}
-          keys={["buy", "sell"]}
-          layout="vertical"
-          group="stacked"
-          nopadding={true}
-        />
+        {currentCallStrikePrice &&
+        currentCallExpiration &&
+        currentCallContractSize ? (
+          <BarChart
+            data={callOrderBookData}
+            keys={["buy", "sell"]}
+            layout="vertical"
+            group="stacked"
+            nopadding={true}
+          />
+        ) : (
+          <Skeleton />
+        )}
       </div>
       <div
         className="grid-cell"
         key="11"
-        data-grid={{ x: 3, y: 7, w: 2, h: 2 }}
+        data-grid={{ x: 3, y: 7, w: 2, h: 2, static: true }}
       >
         <div className="flex items-center">
           <h3 className="grid-header">
             {activePair.split("/")[0]} Puts - Serum Open Orders
           </h3>
-          <div>
-            {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
-            {currentPutStrikePrice && (
-              <Dropdown
-                labelType="strikePrice"
-                currentLabel={currentPutStrikePrice}
-                handleLabelSelection={handleLabelSelection}
-                choices={
-                  fullOrderBookData
-                    ? fullOrderBookData["allPutStrikePrices"]
-                    : []
-                }
-              />
+          {currentPutStrikePrice &&
+            currentPutExpiration &&
+            currentPutContractSize && (
+              <div>
+                {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
+                {currentPutStrikePrice && (
+                  <Dropdown
+                    labelType="strikePrice"
+                    currentLabel={currentPutStrikePrice}
+                    handleLabelSelection={handleLabelSelection}
+                    choices={
+                      fullOrderBookData
+                        ? fullOrderBookData["allPutStrikePrices"]
+                        : []
+                    }
+                    optionType="put"
+                  />
+                )}
+                {currentPutExpiration && (
+                  <Dropdown
+                    labelType="expiration"
+                    currentLabel={currentPutExpiration}
+                    handleLabelSelection={handleLabelSelection}
+                    choices={
+                      fullOrderBookData
+                        ? fullOrderBookData["allPutExpirations"]
+                        : []
+                    }
+                    optionType="put"
+                  />
+                )}
+                {currentPutContractSize && (
+                  <Dropdown
+                    labelType="contractSize"
+                    currentLabel={currentPutContractSize}
+                    handleLabelSelection={handleLabelSelection}
+                    choices={
+                      fullOrderBookData
+                        ? fullOrderBookData["allPutContractSizes"]
+                        : []
+                    }
+                    optionType="put"
+                  />
+                )}
+              </div>
             )}
-            {currentPutExpiration && (
-              <Dropdown
-                labelType="expiration"
-                currentLabel={currentPutExpiration}
-                handleLabelSelection={handleLabelSelection}
-                choices={
-                  fullOrderBookData
-                    ? fullOrderBookData["allPutExpirations"]
-                    : []
-                }
-              />
-            )}
-            {currentPutContractSize && (
-              <Dropdown
-                labelType="contractSize"
-                currentLabel={currentPutContractSize}
-                handleLabelSelection={handleLabelSelection}
-                choices={
-                  fullOrderBookData
-                    ? fullOrderBookData["allPutContractSizes"]
-                    : []
-                }
-              />
-            )}
-          </div>
         </div>
-        <BarChart
-          data={putOrderBookData}
-          keys={["buy", "sell"]}
-          layout="vertical"
-          group="stacked"
-          nopadding={true}
-        />
+        {currentPutStrikePrice &&
+        currentPutExpiration &&
+        currentPutContractSize ? (
+          <BarChart
+            data={putOrderBookData}
+            keys={["buy", "sell"]}
+            layout="vertical"
+            group="stacked"
+            nopadding={true}
+          />
+        ) : (
+          <Skeleton />
+        )}
       </div>
       )
     </ResponsiveGridLayout>

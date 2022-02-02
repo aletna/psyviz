@@ -5,18 +5,18 @@ type Props = {
   currentLabel: any;
   handleLabelSelection: any;
   choices: any;
+  optionType: string;
 };
 export default function ActivePairDropdown({
   labelType,
   currentLabel,
   handleLabelSelection,
   choices,
+  optionType,
 }: Props) {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const handleSelection = (choice: string) => {
-    console.log("hello1");
-    console.log("hello2");
-    handleLabelSelection(labelType, choice);
+    handleLabelSelection(labelType, choice, optionType);
     setShowDropdown(false);
   };
 
@@ -25,14 +25,12 @@ export default function ActivePairDropdown({
       {choices && (
         <div className="dropdown  z-20 mr-2 font-bold">
           <div
-            className="btn font-bold bg-white text-black   text-md dropdown-end hover:cursor-pointer px-5"
+            className="btn font-bold bg-white text-black  hover:bg-gray-300  text-md dropdown-end hover:cursor-pointer px-5"
             onClick={() => setShowDropdown(!showDropdown)}
           >
             {labelType === "expiration"
               ? moment.unix(parseInt(currentLabel)).format("MM/DD")
-              : labelType === "contractSize"
-              ? parseInt(currentLabel) / 10 ** 5
-              : currentLabel}
+              : parseInt(currentLabel)}
           </div>
 
           {choices &&
@@ -50,20 +48,18 @@ export default function ActivePairDropdown({
                   .sort()
                   .map((choice: any, key: number) => {
                     let displayValue = choice;
-                    console.log(labelType);
-
                     if (labelType === "expiration") {
                       displayValue = moment
                         .unix(parseInt(choice))
                         .format("MM/DD");
                     } else if (labelType === "contractSize") {
-                      displayValue = parseInt(choice) / 10 ** 5;
+                      displayValue = parseInt(choice);
                     }
                     return (
                       <li key={key}>
                         {
                           // eslint-disable-next-line jsx-a11y/anchor-is-valid
-                          <a onClick={(e) => handleSelection(choice)}>
+                          <a onClick={() => handleSelection(choice)}>
                             {displayValue}
                           </a>
                         }

@@ -130,7 +130,6 @@ export const combinePairDict = (optionMarketsByPair: any, pair: string) => {
   } else if (optionMarketsByPair[revPair]) {
     _singlePairOptionMarkets[pair] = optionMarketsByPair[revPair];
   }
-  console.log(_singlePairOptionMarkets);
 
   return _singlePairOptionMarkets;
 };

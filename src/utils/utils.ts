@@ -16,14 +16,10 @@ export function getOptionType(pair: string) {
   let mp = pair.split("/");
   if (mp.includes("USDC")) {
     if (mp[0] === "USDC") {
-      console.log(pair, " IS ", "put");
       return "put";
     } else {
-      console.log(pair, " IS ", "call");
       return "call";
     }
   }
-  
-  
   return;
 }

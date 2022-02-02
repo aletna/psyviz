@@ -91,7 +91,6 @@ const OptionMarketContextInit = ({ children }: Props) => {
         _singlePairOptionMarkets,
         "BTC/USDC"
       );
-      console.log(openInterest);
 
       let newOpenInterest = { ...optionMarketContext.openInterest };
       newOpenInterest["BTC/USDC"] = openInterest["BTC/USDC"];

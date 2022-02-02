@@ -109,7 +109,7 @@ export default function App() {
       const prices = await retrieveHistory(currency);
       const pp = {
         id: "price",
-        color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
+        color: "#66FFC7", //#8b5cf6",//#66D4FE", //"#91ffd7",
         data: prices,
       };
       setHistoricData(pp);
@@ -184,8 +184,6 @@ export default function App() {
       optionMarketContext.serumMarkets &&
       optionMarketContext.serumMarkets[activePair]
     ) {
-      console.log(optionMarketContext.serumMarkets);
-
       _getOrderBooksByOptionKey();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,8 +199,6 @@ export default function App() {
       optionMarketContext.serumMarkets[activePair],
       activePair
     );
-    console.log(_fullOrderBookData);
-
     setFullOrderBookData(_fullOrderBookData);
     if (_fullOrderBookData["call"].length > 0) {
       updateCallOrderBook(
@@ -267,14 +263,6 @@ export default function App() {
     putOrderBookData: any,
     _allPutStrikePrices: any
   ) => {
-    console.log("");
-    console.log("");
-    console.log(putOrderBookData);
-    console.log(_allPutStrikePrices);
-
-    console.log("");
-    console.log("");
-
     let _currentStrikePrice = Math.min(..._allPutStrikePrices);
 
     let availPutDataAfterSP = [];
@@ -310,7 +298,6 @@ export default function App() {
         }
       }
     }
-    console.log(initPutData);
 
     setCurrentPutStrikePrice(_currentStrikePrice);
     setCurrentPutExpiration(_currentExpiration);
@@ -323,11 +310,8 @@ export default function App() {
     choice: any,
     optionType: string
   ) => {
-    console.log("click1");
-
     if (fullOrderBookData) {
       if (optionType === "call") {
-        console.log("click2");
         let _currentStrikePrice =
           labelType === "strikePrice" ? choice : currentCallStrikePrice;
 
@@ -366,11 +350,6 @@ export default function App() {
             }
           }
         }
-        console.log(
-          _currentStrikePrice,
-          _currentExpiration,
-          _currentContractSize
-        );
 
         setCurrentCallStrikePrice(_currentStrikePrice);
         setCurrentCallExpiration(_currentExpiration);
@@ -415,11 +394,6 @@ export default function App() {
             }
           }
         }
-        console.log(
-          _currentStrikePrice,
-          _currentExpiration,
-          _currentContractSize
-        );
 
         setCurrentPutStrikePrice(_currentStrikePrice);
         setCurrentPutExpiration(_currentExpiration);
@@ -428,7 +402,16 @@ export default function App() {
       }
     }
   };
-
+  const clearOrderBookData = () => {
+    setCallOrderBookData([]);
+    setCurrentCallStrikePrice(undefined);
+    setCurrentCallExpiration(undefined);
+    setCurrentCallContractSize(undefined);
+    setPutOrderBookData([]);
+    setCurrentPutStrikePrice(undefined);
+    setCurrentPutExpiration(undefined);
+    setCurrentPutContractSize(undefined);
+  };
   // UPDATE ACTIVE PAIR
   useEffect(() => {
     async function updateActivePair(pair: string) {
@@ -440,6 +423,8 @@ export default function App() {
       setCDLoading(true);
       setVMLoading(true);
       setTMLoading(true);
+
+      clearOrderBookData();
       let _singlePairOptionMarkets: any = combinePairDict(
         optionMarketContext.optionMarkets,
         pair
@@ -468,7 +453,6 @@ export default function App() {
     }
     if (activePair && optionMarketContext.optionMarkets) {
       updateActivePair(activePair);
-      console.log("switching pair");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePair]);
@@ -579,14 +563,14 @@ export default function App() {
       setBiweeklyVolume([
         {
           id: "volume",
-          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
+          color: "#66FFC7", //#8b5cf6",//#66D4FE", //"#91ffd7",
           data: [{ x: "0", y: 0 }],
         },
       ]);
       setBiweeklyTrades([
         {
           id: "volume",
-          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
+          color: "#66FFC7", //#8b5cf6",//#66D4FE", //"#91ffd7",
           data: [{ x: "0", y: 0 }],
         },
       ]);
@@ -660,7 +644,7 @@ export default function App() {
       const volumeWeeks = [
         {
           id: "volume",
-          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
+          color: "#66FFC7", //#8b5cf6",//#66D4FE", //"#91ffd7",
           data: extractedVolume,
         },
       ];
@@ -674,7 +658,7 @@ export default function App() {
       const tradesWeeks = [
         {
           id: "volume",
-          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
+          color: "#66FFC7", //#8b5cf6",//#66D4FE", //"#91ffd7",
           data: extractedTrades,
         },
       ];
