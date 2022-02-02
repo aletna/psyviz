@@ -2,14 +2,10 @@ import { Program } from "@project-serum/anchor";
 import { createContext, useState } from "react";
 import { ReactNode, useContext, useEffect } from "react";
 import { useProgram } from "../../hooks/useProgram";
-import {
-  getOpenInterestFromPair2,
-} from "../../utils/OpenInterestUtils";
+import { getOpenInterestFromPair2 } from "../../utils/OpenInterestUtils";
 import { combinePairDict } from "../../utils/optionMarketUtils";
 import { getParsedMarketsGroupedByPair } from "../../utils/psyOptionMarketUtils";
-import {
-  fetchCurrentSerumMarkets,
-} from "../../utils/serumUtils";
+import { fetchCurrentSerumMarkets } from "../../utils/serumUtils";
 // import { getTokenDict } from "../../utils/tokenUtls";
 
 interface OptionMarketContextProps {
@@ -95,6 +91,8 @@ const OptionMarketContextInit = ({ children }: Props) => {
         _singlePairOptionMarkets,
         "BTC/USDC"
       );
+      console.log(openInterest);
+
       let newOpenInterest = { ...optionMarketContext.openInterest };
       newOpenInterest["BTC/USDC"] = openInterest["BTC/USDC"];
       optionMarketContext.updateOpenInterest(newOpenInterest);

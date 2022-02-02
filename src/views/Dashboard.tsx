@@ -20,12 +20,14 @@ import { combinePairDict } from "../utils/optionMarketUtils";
 import {
   fetchCurrentSerumMarkets,
   getDailyStatsAndVolume,
+  getOrderBooksByOptionKey,
 } from "../utils/serumUtils";
 import { useProgram } from "../hooks/useProgram";
 import Navbar from "../components/layout/Navbar";
 import ResponsiveGridComponent from "../components/ResponsiveGridComponent";
 import Stats from "../components/Stats/Stats";
 import ProgressBar from "../components/layout/ProgressBar";
+import { otherSide } from "../utils/utils";
 
 export default function App() {
   const [currencyPrice, setCurrencyPrice] = useState<number>();
@@ -39,11 +41,21 @@ export default function App() {
   const [calendarData, setCalendarData] = useState<any>();
   const [biweeklyVolume, setBiweeklyVolume] = useState<any>();
   const [biweeklyTrades, setBiweeklyTrades] = useState<any>();
-  const [orderBook, setOrderBook] = useState<any>();
+
   const [serumLoadProgress, setSerumLoadProgress] = useState<any>({});
   const [TVL, setTVL] = useState(-1);
   const [putMarketCount, setPutMarketCount] = useState(-1);
   const [callMarketCount, setCallMarketCount] = useState(-1);
+  const [fullOrderBookData, setFullOrderBookData] = useState<any>();
+
+  const [callOrderBookData, setCallOrderBookData] = useState([]);
+  const [currentCallStrikePrice, setCurrentCallStrikePrice] = useState<any>();
+  const [currentCallExpiration, setCurrentCallExpiration] = useState<any>();
+  const [currentCallContractSize, setCurrentCallContractSize] = useState<any>();
+  const [putOrderBookData, setPutOrderBookData] = useState([]);
+  const [currentPutStrikePrice, setCurrentPutStrikePrice] = useState<any>();
+  const [currentPutExpiration, setCurrentPutExpiration] = useState<any>();
+  const [currentPutContractSize, setCurrentPutContractSize] = useState<any>();
 
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
@@ -68,7 +80,6 @@ export default function App() {
 
   useEffect(() => {
     if (optionMarketContext.singlePairOptionMarkets) {
-      console.log(optionMarketContext.singlePairOptionMarkets);
       let putMarkets, callMarkets;
       for (const pair in optionMarketContext.singlePairOptionMarkets) {
         if (pair.split("/")[0] === "USDC") {
@@ -80,7 +91,6 @@ export default function App() {
       }
       setPutMarketCount(putMarkets);
       setCallMarketCount(callMarkets);
-      console.log(putMarkets, callMarkets);
     }
   }, [optionMarketContext.singlePairOptionMarkets]);
 
@@ -99,7 +109,7 @@ export default function App() {
       const prices = await retrieveHistory(currency);
       const pp = {
         id: "price",
-        color: "#91ffd7",
+        color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
         data: prices,
       };
       setHistoricData(pp);
@@ -166,6 +176,259 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.openInterest]);
 
+  useEffect(() => {
+    if (
+      activePair &&
+      optionMarketContext.openInterest &&
+      optionMarketContext.openInterest[activePair] &&
+      optionMarketContext.serumMarkets &&
+      optionMarketContext.serumMarkets[activePair]
+    ) {
+      console.log(optionMarketContext.serumMarkets);
+
+      _getOrderBooksByOptionKey();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activePair,
+    optionMarketContext.openInterest,
+    optionMarketContext.serumMarkets,
+  ]);
+  const _getOrderBooksByOptionKey = async () => {
+    // getOrderbookFilters(optionMarketContext.openInterest, activePair);
+    const _fullOrderBookData: any = await getOrderBooksByOptionKey(
+      optionMarketContext.openInterest[activePair],
+      optionMarketContext.serumMarkets[activePair],
+      activePair
+    );
+    console.log(_fullOrderBookData);
+
+    setFullOrderBookData(_fullOrderBookData);
+    if (_fullOrderBookData["call"].length > 0) {
+      updateCallOrderBook(
+        _fullOrderBookData["call"],
+        _fullOrderBookData["allCallStrikePrices"]
+      );
+    }
+    if (_fullOrderBookData["put"].length > 0) {
+      updatePutOrderBook(
+        _fullOrderBookData["put"],
+        _fullOrderBookData["allPutStrikePrices"]
+      );
+    }
+  };
+
+  const updateCallOrderBook = (
+    callOrderBookData: any,
+    _allCallStrikePrices: any
+  ) => {
+    let _currentStrikePrice = Math.min(..._allCallStrikePrices);
+
+    let availCallDataAfterSP = [];
+    let availExpirations = [];
+    let availContractSizes = [];
+    for (const ob of callOrderBookData) {
+      if (ob.strikePrice === _currentStrikePrice) {
+        availCallDataAfterSP.push(ob);
+        availExpirations.push(ob.expiration);
+        availContractSizes.push(ob.contractSize);
+      }
+    }
+
+    let _currentExpiration = Math.min(...availExpirations);
+    let availCallDataAfterExp = [];
+    for (const ob of availCallDataAfterSP) {
+      if (ob.expiration === _currentExpiration) {
+        availCallDataAfterExp.push(ob);
+        availContractSizes.push(ob.contractSize);
+      }
+    }
+
+    let initCallData = [];
+    let _currentContractSize = Math.min(...availContractSizes);
+    for (const ob of availCallDataAfterExp) {
+      if (ob.contractSize === _currentContractSize) {
+        for (const d of ob.orderBook) {
+          initCallData.push({
+            price: d.price,
+            size: d.size, //d.openOrdersSlot
+            side: d.side,
+          });
+        }
+      }
+    }
+    setCurrentCallStrikePrice(_currentStrikePrice);
+    setCurrentCallExpiration(_currentExpiration);
+    setCurrentCallContractSize(_currentContractSize);
+    getOrderBookData(initCallData, "call");
+  };
+
+  const updatePutOrderBook = (
+    putOrderBookData: any,
+    _allPutStrikePrices: any
+  ) => {
+    console.log("");
+    console.log("");
+    console.log(putOrderBookData);
+    console.log(_allPutStrikePrices);
+
+    console.log("");
+    console.log("");
+
+    let _currentStrikePrice = Math.min(..._allPutStrikePrices);
+
+    let availPutDataAfterSP = [];
+    let availExpirations = [];
+    let availContractSizes = [];
+    for (const ob of putOrderBookData) {
+      if (ob.strikePrice === _currentStrikePrice) {
+        availPutDataAfterSP.push(ob);
+        availExpirations.push(ob.expiration);
+        availContractSizes.push(ob.contractSize);
+      }
+    }
+
+    let _currentExpiration = Math.min(...availExpirations);
+    let availPutDataAfterExp = [];
+    for (const ob of availPutDataAfterSP) {
+      if (ob.expiration === _currentExpiration) {
+        availPutDataAfterExp.push(ob);
+        availContractSizes.push(ob.contractSize);
+      }
+    }
+
+    let initPutData = [];
+    let _currentContractSize = Math.min(...availContractSizes);
+    for (const ob of availPutDataAfterExp) {
+      if (ob.contractSize === _currentContractSize) {
+        for (const d of ob.orderBook) {
+          initPutData.push({
+            price: d.price,
+            size: d.size, //d.openOrdersSlot
+            side: d.side,
+          });
+        }
+      }
+    }
+    console.log(initPutData);
+
+    setCurrentPutStrikePrice(_currentStrikePrice);
+    setCurrentPutExpiration(_currentExpiration);
+    setCurrentPutContractSize(_currentContractSize);
+    getOrderBookData(initPutData, "put");
+  };
+
+  const handleLabelSelection = (
+    labelType: string,
+    choice: any,
+    optionType: string
+  ) => {
+    console.log("click1");
+
+    if (fullOrderBookData) {
+      if (optionType === "call") {
+        console.log("click2");
+        let _currentStrikePrice =
+          labelType === "strikePrice" ? choice : currentCallStrikePrice;
+
+        let availCallDataAfterSP = [];
+        let availExpirations = [];
+        let availContractSizes = [];
+        for (const ob of fullOrderBookData["call"]) {
+          if (ob.strikePrice === _currentStrikePrice) {
+            availCallDataAfterSP.push(ob);
+            availExpirations.push(ob.expiration);
+            availContractSizes.push(ob.contractSize);
+          }
+        }
+
+        let _currentExpiration =
+          labelType === "expiration" ? choice : currentCallExpiration;
+        let availCallDataAfterExp = [];
+        for (const ob of availCallDataAfterSP) {
+          if (ob.expiration === _currentExpiration) {
+            availCallDataAfterExp.push(ob);
+            availContractSizes.push(ob.contractSize);
+          }
+        }
+
+        let initCallData = [];
+        let _currentContractSize =
+          labelType === "contractSize" ? choice : currentCallContractSize;
+        for (const ob of availCallDataAfterExp) {
+          if (ob.contractSize === _currentContractSize) {
+            for (const d of ob.orderBook) {
+              initCallData.push({
+                price: d.price,
+                size: d.openOrdersSlot,
+                side: d.side,
+              });
+            }
+          }
+        }
+        console.log(
+          _currentStrikePrice,
+          _currentExpiration,
+          _currentContractSize
+        );
+
+        setCurrentCallStrikePrice(_currentStrikePrice);
+        setCurrentCallExpiration(_currentExpiration);
+        setCurrentCallContractSize(_currentContractSize);
+        getOrderBookData(initCallData, "call");
+      } else if (optionType === "put") {
+        let _currentStrikePrice =
+          labelType === "strikePrice" ? choice : currentPutStrikePrice;
+
+        let availPutDataAfterSP = [];
+        let availExpirations = [];
+        let availContractSizes = [];
+        for (const ob of fullOrderBookData["put"]) {
+          if (ob.strikePrice === _currentStrikePrice) {
+            availPutDataAfterSP.push(ob);
+            availExpirations.push(ob.expiration);
+            availContractSizes.push(ob.contractSize);
+          }
+        }
+
+        let _currentExpiration =
+          labelType === "expiration" ? choice : currentPutExpiration;
+        let availPutDataAfterExp = [];
+        for (const ob of availPutDataAfterSP) {
+          if (ob.expiration === _currentExpiration) {
+            availPutDataAfterExp.push(ob);
+            availContractSizes.push(ob.contractSize);
+          }
+        }
+
+        let initPutData = [];
+        let _currentContractSize =
+          labelType === "contractSize" ? choice : currentPutContractSize;
+        for (const ob of availPutDataAfterExp) {
+          if (ob.contractSize === _currentContractSize) {
+            for (const d of ob.orderBook) {
+              initPutData.push({
+                price: d.price,
+                size: d.openOrdersSlot,
+                side: d.side,
+              });
+            }
+          }
+        }
+        console.log(
+          _currentStrikePrice,
+          _currentExpiration,
+          _currentContractSize
+        );
+
+        setCurrentPutStrikePrice(_currentStrikePrice);
+        setCurrentPutExpiration(_currentExpiration);
+        setCurrentPutContractSize(_currentContractSize);
+        getOrderBookData(initPutData, "put");
+      }
+    }
+  };
+
   // UPDATE ACTIVE PAIR
   useEffect(() => {
     async function updateActivePair(pair: string) {
@@ -205,53 +468,10 @@ export default function App() {
     }
     if (activePair && optionMarketContext.optionMarkets) {
       updateActivePair(activePair);
-      console.log("YES switching.....");
-    } else {
-      console.log("NO switching.....");
+      console.log("switching pair");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePair]);
-
-  // TODO: ORDERBOOKDATA
-  useEffect(() => {
-    if (
-      optionMarketContext.serumMarkets &&
-      optionMarketContext.serumMarkets[activePair]
-    ) {
-      let filteredOrderBook = [];
-      for (const market in optionMarketContext.serumMarkets[activePair]) {
-        const _orderBook =
-          optionMarketContext.serumMarkets[activePair][market].orderBook;
-        if (_orderBook && _orderBook.length > 0) {
-          for (const ob of _orderBook) {
-            console.log(ob);
-            console.log("");
-
-            console.log("Price Lots:", ob.priceLots.toString());
-            console.log("Price:", ob.price);
-            console.log("Size:", ob.size);
-            console.log("Side:", ob.side);
-            console.log("");
-            filteredOrderBook.push({
-              priceLots: parseInt(ob.priceLots.toString()),
-              price: ob.price,
-              size: ob.size,
-              side: ob.side,
-            });
-            setOrderBook(filteredOrderBook);
-          }
-        }
-      }
-      console.log("filtered orderbook", filteredOrderBook);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [optionMarketContext.serumMarkets]);
-
-  useEffect(() => {
-    if (orderBook) {
-      console.log("THEEEEE order book:", orderBook);
-    }
-  }, [orderBook]);
 
   useEffect(() => {
     if (dataVolume && VMLoading) {
@@ -275,8 +495,6 @@ export default function App() {
   }, [calendarData]);
 
   useEffect(() => {
-    console.log("biweeklyVolume", biweeklyVolume);
-
     if (biweeklyVolume && DVLoading) {
       setDVLoading(false);
     }
@@ -350,7 +568,6 @@ export default function App() {
       //   await delay(1000);
       // }
     }
-    console.log("SEEEEEEEE------EEEERUM", aggregatedVolume);
 
     setSerumLoadProgress({});
     getDailySerumStats(aggregatedStats);
@@ -362,14 +579,14 @@ export default function App() {
       setBiweeklyVolume([
         {
           id: "volume",
-          color: "#91ffd7",
+          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
           data: [{ x: "0", y: 0 }],
         },
       ]);
       setBiweeklyTrades([
         {
           id: "volume",
-          color: "#91ffd7",
+          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
           data: [{ x: "0", y: 0 }],
         },
       ]);
@@ -443,7 +660,7 @@ export default function App() {
       const volumeWeeks = [
         {
           id: "volume",
-          color: "#91ffd7",
+          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
           data: extractedVolume,
         },
       ];
@@ -457,14 +674,62 @@ export default function App() {
       const tradesWeeks = [
         {
           id: "volume",
-          color: "#91ffd7",
+          color: "#66FFC7",//#8b5cf6",//#66D4FE", //"#91ffd7",
           data: extractedTrades,
         },
       ];
-      console.log("THHHHEEE VOLUME WEEKS", volumeWeeks);
-
       setBiweeklyVolume(volumeWeeks);
       setBiweeklyTrades(tradesWeeks);
+    }
+  };
+
+  const getOrderBookData = (_orderBook: any, orderType: string) => {
+    /// CHANGE - Orderbook
+    let orderData = _orderBook.filter((i: any) => i.size);
+    let tempOrderBook: any = {};
+    Object.entries(orderData).forEach(([_, v]: any) => {
+      let tempSide = v.side;
+      let tempFloat = parseFloat(v.price) * 10000;
+      if (tempFloat in tempOrderBook) {
+        tempOrderBook[tempFloat][tempSide] += v.size;
+      } else {
+        tempOrderBook[tempFloat] = {
+          label: v.price,
+          [tempSide]: v.size,
+          [otherSide(tempSide)]: 0,
+        };
+      }
+    });
+
+    tempOrderBook = Object.keys(tempOrderBook)
+      .sort(function (a: any, b: any) {
+        return a - b;
+      })
+      .reduce((obj: any, key) => {
+        obj[key] = tempOrderBook[key];
+        return obj;
+      }, {});
+    let _orderBookData: any = Object.keys(tempOrderBook).map(function (key) {
+      return {
+        label: tempOrderBook[key].label,
+        buy: tempOrderBook[key].buy,
+        sell: tempOrderBook[key].sell,
+      };
+    });
+
+    _orderBookData.sort(function (a: any, b: any) {
+      var keyA = new Date(a.label),
+        keyB = new Date(b.label);
+      // Compare the 2 dates
+      if (keyA < keyB) return -1;
+      if (keyA > keyB) return 1;
+      return 0;
+    });
+
+    if (orderType === "call") {
+      setCallOrderBookData(_orderBookData);
+    } else if (orderType === "put") {
+      setPutOrderBookData(_orderBookData);
     }
   };
 
@@ -507,39 +772,17 @@ export default function App() {
           OIELoading={OIELoading}
           biweeklyTrades={biweeklyTrades}
           DTLoading={DTLoading}
+          callOrderBookData={callOrderBookData}
+          putOrderBookData={putOrderBookData}
+          currentCallStrikePrice={currentCallStrikePrice}
+          handleLabelSelection={handleLabelSelection}
+          fullOrderBookData={fullOrderBookData}
+          currentCallExpiration={currentCallExpiration}
+          currentCallContractSize={currentCallContractSize}
+          currentPutStrikePrice={currentPutStrikePrice}
+          currentPutExpiration={currentPutExpiration}
+          currentPutContractSize={currentPutContractSize}
         />
-
-        {/* <div className="py-5">
-          <h3 className="grid-header">OpenOrders</h3>
-          <div className="flex">
-            <div>
-              {orderBook &&
-                orderBook.map((order: any, key: number) => {
-                  if (order.side === "buy") {
-                    return (
-                      <div key={key}>
-                        {order.price} - {order.size}
-                      </div>
-                    );
-                  }
-                  return <></>;
-                })}
-            </div>
-            <div>
-              {orderBook &&
-                orderBook.map((order: any, key: number) => {
-                  if (order.side === "sell") {
-                    return (
-                      <div key={key}>
-                        {order.price} - {order.size}
-                      </div>
-                    );
-                  }
-                  return <></>;
-                })}
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );

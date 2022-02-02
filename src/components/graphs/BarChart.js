@@ -1,7 +1,7 @@
 import React from "react";
 import { ResponsiveBar } from "@nivo/bar";
 
-export default function BarChart({ data, keys, group, layout }) {
+export default function BarChart({ data, keys, group, layout, nopadding }) {
   if (data && keys) {
     return (
       <>
@@ -12,9 +12,15 @@ export default function BarChart({ data, keys, group, layout }) {
           groupMode={group}
           enableLabel={false}
           layout={layout}
-          margin={{ top: 30, right: 130, bottom: 50, left: 60 }}
-          padding={0.3}
-          colors={["#91f2ff", "#ffa1a1"]}
+          margin={{
+            top: 30,
+            right: 130,
+            bottom: nopadding ? 70 : 50,
+            left: 60,
+          }}
+          padding={nopadding ? 0 : 0.3}
+          // colors={["#91f2ff", "#ffa1a1"]}
+          colors={["#66FFC7", "#FF669D"]}
           legends={[
             {
               dataFrom: "keys",
@@ -37,5 +43,5 @@ export default function BarChart({ data, keys, group, layout }) {
       </>
     );
   }
-  return <></>
+  return <></>;
 }

@@ -88,43 +88,9 @@ const _getSerumMarketData = async (market: Market) => {
   const baseMintAddress = market.baseMintAddress.toBase58();
   const quoteMintAddress = market.quoteMintAddress.toBase58();
 
-  // orderbook tree
-  const asksAddress = market.asksAddress.toBase58();
-  const bidsAddress = market.bidsAddress.toBase58();
-
-  // circular buffer (FIFO queue)
-  //   event queue..
-  // const eventQueue = await market.loadEventQueue(connection);
-
-  // const fills = await market.loadFills(connection, 20);
-
-  // const newFills = [];
-  // if (fills.length > 0) {
-  //   for (const fill of fills) {
-  //     const f = fill;
-  //     f.nativeQuantityPaid = f.nativeQuantityPaid.toString();
-  //     f.nativeFeeOrRebate = f.nativeFeeOrRebate.toString();
-  //     f.nativeQuantityReleased = f.nativeQuantityReleased.toString();
-  //     newFills.push(f);
-  //   }
-  // }
-
-  const asks = await market.loadAsks(connection);
-  const bids = await market.loadBids(connection);
-  // Full orderbook data
-  const orderBook = await getOrderBookData(asks, bids);
-
-  console.log('CLEAN ORDERBOOK DATA', orderBook);
-  
-
   return {
     baseMintAddress,
     quoteMintAddress,
-    asksAddress,
-    bidsAddress,
-    // eventQueue,
-    orderBook,
-    // fills: newFills,
   };
 };
 
@@ -277,4 +243,94 @@ const getSerum = async (m: any, programId: any) => {
     );
     return data;
   }
+};
+
+export const getOrderBooksByOptionKey = async (
+  singlePairMarket: any,
+  serumMarkets: any,
+  activePair: string
+) => {
+  console.log(singlePairMarket, serumMarkets);
+
+  let callResp: any = [];
+  let putResp: any = [];
+  let allCallExpirations: any = [];
+  let allPutExpirations: any = [];
+  let allCallContractSizes: any = [];
+  let allPutContractSizes: any = [];
+  let allCallStrikePrices: any = [];
+  let allPutStrikePrices: any = [];
+  for (const market of singlePairMarket) {
+    if (serumMarkets[market.optionMarketKey]) {
+      const serumMarket = serumMarkets[market.optionMarketKey];
+      let _serumMarket = await Market.load(
+        connection,
+        new PublicKey(serumMarket.serumMarketAddress),
+        {},
+        SERUM_DEX_V3
+      );
+
+      const asks = await _serumMarket.loadAsks(connection);
+      const bids = await _serumMarket.loadBids(connection);
+      // Full orderbook data
+      const orderBook = await getOrderBookData(asks, bids);
+      console.log(market);
+
+      if (market.type === "call") {
+        console.log(market);
+
+        console.log(">>", market, orderBook);
+
+        callResp.push({
+          orderBook,
+          pair: activePair,
+          expiration: parseInt(market.expiration),
+          contractSize: parseInt(market.quoteAmountPerContract),
+          strikePrice: parseInt(market.strikePrice),
+        });
+        if (!allCallContractSizes.includes(market.quoteAmountPerContract)) {
+          allCallContractSizes.push(market.quoteAmountPerContract);
+        }
+        if (!allCallExpirations.includes(market.expiration)) {
+          allCallExpirations.push(market.expiration);
+        }
+        if (!allCallStrikePrices.includes(market.strikePrice)) {
+          allCallStrikePrices.push(market.strikePrice);
+        }
+      } else {
+        putResp.push({
+          orderBook,
+          pair: activePair,
+          expiration: parseInt(market.expiration),
+          contractSize: parseInt(market.underlyingAmountPerContract),
+          strikePrice: parseInt(market.strikePrice),
+        });
+        if (!allPutContractSizes.includes(market.underlyingAmountPerContract)) {
+          allPutContractSizes.push(market.underlyingAmountPerContract);
+        }
+        if (!allPutExpirations.includes(market.expiration)) {
+          allPutExpirations.push(market.expiration);
+        }
+        if (!allPutStrikePrices.includes(market.strikePrice)) {
+          allPutStrikePrices.push(market.strikePrice);
+        }
+      }
+    }
+  }
+  console.log("call resoibnse", callResp);
+  console.log("put resoibnse", putResp);
+
+  const combined = {
+    call: callResp,
+    put: putResp,
+    allCallExpirations,
+    allPutExpirations,
+    allCallContractSizes,
+    allPutContractSizes,
+    allCallStrikePrices,
+    allPutStrikePrices,
+  };
+  console.log(combined);
+
+  return combined;
 };

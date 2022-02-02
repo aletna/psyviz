@@ -3,6 +3,7 @@ import { capitalizeFirstLetter, pairToCoinGecko } from "../utils/global";
 import BarChart from "./graphs/BarChart";
 import LineChart from "./graphs/LineChart";
 import PieChart from "./graphs/PieChart";
+import Dropdown from "./layout/Dropdown";
 import Skeleton from "./Skeleton";
 
 // Handles the responsive nature of the grid
@@ -31,6 +32,16 @@ type Props = {
   OIELoading: boolean;
   biweeklyTrades: any;
   DTLoading: boolean;
+  callOrderBookData: any;
+  putOrderBookData: any;
+  currentCallStrikePrice: any;
+  handleLabelSelection: any;
+  fullOrderBookData: any;
+  currentCallExpiration: any;
+  currentCallContractSize: any;
+  currentPutStrikePrice: any;
+  currentPutExpiration: any;
+  currentPutContractSize: any;
 };
 export default function ResponsiveGridComponent({
   activePair,
@@ -51,6 +62,16 @@ export default function ResponsiveGridComponent({
   OIELoading,
   biweeklyTrades,
   DTLoading,
+  callOrderBookData,
+  putOrderBookData,
+  currentCallStrikePrice,
+  handleLabelSelection,
+  fullOrderBookData,
+  currentCallExpiration,
+  currentCallContractSize,
+  currentPutStrikePrice,
+  currentPutExpiration,
+  currentPutContractSize,
 }: Props) {
   return (
     <ResponsiveGridLayout className="" breakpoints={breakpoints} cols={cols}>
@@ -83,6 +104,7 @@ export default function ResponsiveGridComponent({
               keys={["volume"]}
               group={"stacked"}
               layout="horizontal"
+              nopadding={false}
             />
           </>
         ) : (
@@ -102,6 +124,7 @@ export default function ResponsiveGridComponent({
               keys={["trades"]}
               group={"stacked"}
               layout="horizontal"
+              nopadding={false}
             />
           </>
         ) : (
@@ -132,6 +155,7 @@ export default function ResponsiveGridComponent({
             keys={optionBars}
             group="grouped"
             layout="vertical"
+            nopadding={false}
           />
         ) : (
           <Skeleton />
@@ -157,31 +181,135 @@ export default function ResponsiveGridComponent({
             keys={optionBars}
             layout="vertical"
             group="stacked"
+            nopadding={false}
           />
         ) : (
           <Skeleton />
         )}
       </div>
-      {/* <div
-      className="grid-cell"
-      key="8"
-      data-grid={{ x: 1, y: 5, w: 1, h: 2 }}
-    >
-      <h3 className="grid-header">Serum Daily # of Trades</h3>
-      {calendarData && !CDLoading ? (
-        <CalendarChart data={calendarData} />
-      ) : (
-        <Skeleton />
-      )}
-    </div> */}
       <div className="grid-cell" key="9" data-grid={{ x: 3, y: 5, w: 2, h: 2 }}>
         <h3 className="grid-header">Serum Daily # of Trades</h3>
-
         {biweeklyTrades && !DTLoading ? (
           <LineChart data={biweeklyTrades} legend="Day" />
         ) : (
           <Skeleton />
         )}
+      </div>
+      <div
+        className="grid-cell"
+        key="10"
+        data-grid={{ x: 0, y: 7, w: 2, h: 2 }}
+      >
+        <div className="flex items-center">
+          <h3 className="grid-header">
+            {activePair.split("/")[0]} Calls - Serum Open Orders
+          </h3>
+          <div>
+            {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
+            {currentCallStrikePrice && (
+              <Dropdown
+                labelType="strikePrice"
+                currentLabel={currentCallStrikePrice}
+                handleLabelSelection={handleLabelSelection}
+                choices={
+                  fullOrderBookData
+                    ? fullOrderBookData["allCallStrikePrices"]
+                    : []
+                }
+              />
+            )}
+
+            {currentCallExpiration && (
+              <Dropdown
+                labelType="expiration"
+                currentLabel={currentCallExpiration}
+                handleLabelSelection={handleLabelSelection}
+                choices={
+                  fullOrderBookData
+                    ? fullOrderBookData["allCallExpirations"]
+                    : []
+                }
+              />
+            )}
+            {currentCallContractSize && (
+              <Dropdown
+                labelType="contractSize"
+                currentLabel={currentCallContractSize}
+                handleLabelSelection={handleLabelSelection}
+                choices={
+                  fullOrderBookData
+                    ? fullOrderBookData["allCallContractSizes"]
+                    : []
+                }
+              />
+            )}
+          </div>
+        </div>
+
+        <BarChart
+          data={callOrderBookData}
+          keys={["buy", "sell"]}
+          layout="vertical"
+          group="stacked"
+          nopadding={true}
+        />
+      </div>
+      <div
+        className="grid-cell"
+        key="11"
+        data-grid={{ x: 3, y: 7, w: 2, h: 2 }}
+      >
+        <div className="flex items-center">
+          <h3 className="grid-header">
+            {activePair.split("/")[0]} Puts - Serum Open Orders
+          </h3>
+          <div>
+            {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
+            {currentPutStrikePrice && (
+              <Dropdown
+                labelType="strikePrice"
+                currentLabel={currentPutStrikePrice}
+                handleLabelSelection={handleLabelSelection}
+                choices={
+                  fullOrderBookData
+                    ? fullOrderBookData["allPutStrikePrices"]
+                    : []
+                }
+              />
+            )}
+            {currentPutExpiration && (
+              <Dropdown
+                labelType="expiration"
+                currentLabel={currentPutExpiration}
+                handleLabelSelection={handleLabelSelection}
+                choices={
+                  fullOrderBookData
+                    ? fullOrderBookData["allPutExpirations"]
+                    : []
+                }
+              />
+            )}
+            {currentPutContractSize && (
+              <Dropdown
+                labelType="contractSize"
+                currentLabel={currentPutContractSize}
+                handleLabelSelection={handleLabelSelection}
+                choices={
+                  fullOrderBookData
+                    ? fullOrderBookData["allPutContractSizes"]
+                    : []
+                }
+              />
+            )}
+          </div>
+        </div>
+        <BarChart
+          data={putOrderBookData}
+          keys={["buy", "sell"]}
+          layout="vertical"
+          group="stacked"
+          nopadding={true}
+        />
       </div>
       )
     </ResponsiveGridLayout>

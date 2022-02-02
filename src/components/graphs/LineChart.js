@@ -10,7 +10,7 @@ export default function LineChart({ data, legend, axisLeft = "" }) {
     <>
       <ResponsiveLine
         data={data}
-        margin={{ top: 30, right: 60, bottom: 60, left: 60 }}
+        margin={{ top: 30, right: al ? 60 : 70, bottom: 60, left: 60 }}
         axisBottom={{
           orient: "bottom",
           tickSize: 5,
@@ -56,7 +56,7 @@ export default function LineChart({ data, legend, axisLeft = "" }) {
             itemOpacity: 0.75,
             symbolSize: 12,
             symbolShape: "circle",
-            symbolBorderColor: "rgba(0, 0, 0, .5)",
+            symbolBorderColor: "",
           },
         ]}
       />

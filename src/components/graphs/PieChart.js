@@ -8,13 +8,13 @@ const PieChart = ({ data }) => (
         id: "calls",
         label: "calls",
         value: data[0],
-        color: "hsl(65, 70%, 50%)",
+        color: "hsl(197, 99%, 70%)", //"hsl(65, 70%, 50%)",
       },
       {
         id: "puts",
         label: "puts",
         value: data[1],
-        color: "hsl(199, 70%, 50%)",
+        color: "#ec4899", // "hsl(199, 70%, 50%)",
       },
     ]}
     margin={{
@@ -32,7 +32,7 @@ const PieChart = ({ data }) => (
     borderWidth={1}
     borderColor={{
       from: "color",
-      modifiers: [["darker", 0.2]],
+      // modifiers: [["darker", 0.2]],
     }}
     radialLabelsSkipAngle={10}
     radialLabelsTextXOffset={6}

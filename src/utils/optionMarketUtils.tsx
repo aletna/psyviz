@@ -24,17 +24,19 @@ export const parseOptionMarket = async (
 
     // POOLS
     const quoteAssetPoolPK = optionMarket.account.quoteAssetPool.toBase58();
+    const quoteAssetMintString = optionMarket.account.quoteAssetMint.toBase58();
+
     const underlyingAssetPoolPK =
       optionMarket.account.underlyingAssetPool.toBase58();
-    const quoteAssetMintString = optionMarket.account.quoteAssetMint.toBase58();
     const underlyingAssetMintString =
       optionMarket.account.underlyingAssetMint.toBase58();
 
     let quoteAssetMint;
-    let underlyingAssetMint;
     let quoteAssetPoolPKBalance;
-    let underlyingAssetPoolPKBalance;
     let quoteAssetPool;
+
+    let underlyingAssetMint;
+    let underlyingAssetPoolPKBalance;
     let underlyingAssetPool;
 
     if (allMints[quoteAssetMintString] && allMints[underlyingAssetMintString]) {
@@ -48,13 +50,14 @@ export const parseOptionMarket = async (
       [
         // quoteAssetMint,
         // underlyingAssetMint,
+
         quoteAssetPoolPKBalance,
         underlyingAssetPoolPKBalance,
       ] = await Promise.all(promises.map((fn) => fn[0](fn[1])));
 
       quoteAssetMint = allMints[quoteAssetMintString];
       underlyingAssetMint = allMints[underlyingAssetMintString];
-      
+
       quoteAssetPool = {
         publicKey: quoteAssetPoolPK,
         balance: quoteAssetPoolPKBalance.balance,
@@ -113,17 +116,21 @@ export const parseOptionMarket = async (
   }
 };
 
+// PAIR SWAP HAPPENS HERE
 export const combinePairDict = (optionMarketsByPair: any, pair: string) => {
   const _singlePairOptionMarkets: any = {};
   const splitPair = pair.split("/");
   const revPair = splitPair[1] + "/" + splitPair[0];
+
   if (optionMarketsByPair[pair] && optionMarketsByPair[revPair]) {
-    _singlePairOptionMarkets[pair] = optionMarketsByPair[pair];
-    _singlePairOptionMarkets[revPair] = optionMarketsByPair[revPair];
+    _singlePairOptionMarkets[revPair] = optionMarketsByPair[pair];
+    _singlePairOptionMarkets[pair] = optionMarketsByPair[revPair];
   } else if (optionMarketsByPair[pair]) {
-    _singlePairOptionMarkets[pair] = optionMarketsByPair[pair];
+    _singlePairOptionMarkets[revPair] = optionMarketsByPair[pair];
   } else if (optionMarketsByPair[revPair]) {
-    _singlePairOptionMarkets[revPair] = optionMarketsByPair[revPair];
+    _singlePairOptionMarkets[pair] = optionMarketsByPair[revPair];
   }
+  console.log(_singlePairOptionMarkets);
+
   return _singlePairOptionMarkets;
 };
