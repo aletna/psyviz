@@ -2,10 +2,14 @@ import { Program } from "@project-serum/anchor";
 import { createContext, useState } from "react";
 import { ReactNode, useContext, useEffect } from "react";
 import { useProgram } from "../../hooks/useProgram";
-import { getOpenInterestFromPair } from "../../utils/OpenInterestUtils";
+import {
+  getOpenInterestFromPair2,
+} from "../../utils/OpenInterestUtils";
 import { combinePairDict } from "../../utils/optionMarketUtils";
 import { getParsedMarketsGroupedByPair } from "../../utils/psyOptionMarketUtils";
-import { fetchCurrentSerumMarkets } from "../../utils/serumUtils";
+import {
+  fetchCurrentSerumMarkets,
+} from "../../utils/serumUtils";
 // import { getTokenDict } from "../../utils/tokenUtls";
 
 interface OptionMarketContextProps {
@@ -74,28 +78,23 @@ const OptionMarketContextInit = ({ children }: Props) => {
 
   const fetchAllOpenOptionMarkets = async (program: Program) => {
     const _optionMarketsByPair = await getParsedMarketsGroupedByPair(program);
-    console.log("ALL OPTION MARKETS", _optionMarketsByPair);
-
     optionMarketContext.updateOptionMarkets(_optionMarketsByPair);
     fetchOpenInterestForPair(_optionMarketsByPair);
   };
 
   const fetchOpenInterestForPair = async (_optionMarketsByPair: any) => {
-    console.log("HELLO");
     let _singlePairOptionMarkets: any = combinePairDict(
       _optionMarketsByPair,
       "BTC/USDC"
     );
-
     if (_singlePairOptionMarkets) {
       optionMarketContext.updateSinglePairOptionMarkets(
         _singlePairOptionMarkets
       );
-
-      const openInterest: any = await getOpenInterestFromPair(
-        _singlePairOptionMarkets
+      const openInterest: any = await getOpenInterestFromPair2(
+        _singlePairOptionMarkets,
+        "BTC/USDC"
       );
-
       let newOpenInterest = { ...optionMarketContext.openInterest };
       newOpenInterest["BTC/USDC"] = openInterest["BTC/USDC"];
       optionMarketContext.updateOpenInterest(newOpenInterest);

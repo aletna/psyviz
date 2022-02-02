@@ -114,6 +114,9 @@ const _getSerumMarketData = async (market: Market) => {
   // Full orderbook data
   const orderBook = await getOrderBookData(asks, bids);
 
+  console.log('CLEAN ORDERBOOK DATA', orderBook);
+  
+
   return {
     baseMintAddress,
     quoteMintAddress,

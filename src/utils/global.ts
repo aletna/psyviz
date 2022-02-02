@@ -96,6 +96,7 @@ export const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
 export const formatNumber = (n: number) => {
   return n
     .toFixed(2)
+    .replace(/[.,]00$/, "")
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };

@@ -1,6 +1,6 @@
-export function findAllByKey(obj, keyToFind) {
+export function findAllByKey(obj: any, keyToFind: any): any {
   return Object.entries(obj).reduce(
-    (acc, [key, value]) =>
+    (acc, [key, value]: any) =>
       key === keyToFind
         ? acc.concat(value)
         : typeof value === "object"

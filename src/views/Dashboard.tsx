@@ -1,22 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
-import LineChart from "../components/graphs/LineChart";
-import BarChart from "../components/graphs/BarChart";
-import PieChart from "../components/graphs/PieChart";
 
 import retrieveHistory from "../data/historicaldata";
-import { Responsive, WidthProvider } from "react-grid-layout";
 import "../styles.css";
 import { OptionMarketContext } from "../components/context/OptionMarketContextInit";
 import {
-  capitalizeFirstLetter,
   CurrencyPairs,
   dynamicDateSort,
   pairToCoinGecko,
 } from "../utils/global";
 import { findAllByKey } from "../utils/findAllByKeys";
 import {
-  getExpiredData,
-  getOpenInterestFromPair,
+  getExpiredData2,
+  getFormattedOpenActivePair,
+  getOpenInterestFromPair2,
+  getStrikeData,
+  getTotalTVL,
 } from "../utils/OpenInterestUtils";
 import { combinePairDict } from "../utils/optionMarketUtils";
 import {
@@ -24,21 +22,13 @@ import {
   getDailyStatsAndVolume,
 } from "../utils/serumUtils";
 import { useProgram } from "../hooks/useProgram";
-import CalendarChart from "../components/graphs/CalendarChart";
 import Navbar from "../components/layout/Navbar";
-import Stats from "../components/Stats";
-import Skeleton from "../components/Skeleton";
-
-// Handles the responsive nature of the grid
-const ResponsiveGridLayout = WidthProvider(Responsive);
-// Determines the screen breakpoints for the columns
-const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 320 };
-// How many columns are available at each breakpoint
-const cols = { lg: 4, md: 4, sm: 1, xs: 1, xxs: 1 };
-const optionBars = ["calls", "puts"];
+import ResponsiveGridComponent from "../components/ResponsiveGridComponent";
+import Stats from "../components/Stats/Stats";
+import ProgressBar from "../components/layout/ProgressBar";
 
 export default function App() {
-  const [currencyPrice, setCurrencyPrice] = useState<any>();
+  const [currencyPrice, setCurrencyPrice] = useState<number>();
   const [historicData, setHistoricData] = useState<any>();
   const [shapedData, setShapedData] = useState<any>();
   const [expiryData, setExpiryData] = useState<any>();
@@ -52,6 +42,8 @@ export default function App() {
   const [orderBook, setOrderBook] = useState<any>();
   const [serumLoadProgress, setSerumLoadProgress] = useState<any>({});
   const [TVL, setTVL] = useState(-1);
+  const [putMarketCount, setPutMarketCount] = useState(-1);
+  const [callMarketCount, setCallMarketCount] = useState(-1);
 
   const [activePair, setActivePair] = useState<string>(CurrencyPairs.BTC_USDC);
 
@@ -73,6 +65,24 @@ export default function App() {
     optionMarketContext.updateActivePair("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (optionMarketContext.singlePairOptionMarkets) {
+      console.log(optionMarketContext.singlePairOptionMarkets);
+      let putMarkets, callMarkets;
+      for (const pair in optionMarketContext.singlePairOptionMarkets) {
+        if (pair.split("/")[0] === "USDC") {
+          putMarkets = optionMarketContext.singlePairOptionMarkets[pair].length;
+        } else {
+          callMarkets =
+            optionMarketContext.singlePairOptionMarkets[pair].length;
+        }
+      }
+      setPutMarketCount(putMarkets);
+      setCallMarketCount(callMarkets);
+      console.log(putMarkets, callMarkets);
+    }
+  }, [optionMarketContext.singlePairOptionMarkets]);
 
   // Coingecko data
   useEffect(() => {
@@ -110,55 +120,10 @@ export default function App() {
 
   useEffect(() => {
     if (currencyPrice && optionMarketContext.singlePairOptionMarkets) {
-      console.log("CURRENCY PRICE USING", currencyPrice);
-      let totalValue = 0;
-      for (const marketSide in optionMarketContext.singlePairOptionMarkets) {
-        for (const market of optionMarketContext.singlePairOptionMarkets[
-          marketSide
-        ]) {
-          console.log("");
-          let quoteValue;
-          if (market.quoteAssetMint.symbol === "USDC") {
-            quoteValue =
-              market.quoteAssetPool.balance /
-              10 ** market.quoteAssetPool.decimals;
-          } else {
-            quoteValue =
-              (market.quoteAssetPool.balance /
-                10 ** market.quoteAssetPool.decimals) *
-              currencyPrice;
-          }
-
-          console.log(
-            "quote:",
-            market.quoteAssetPool,
-            quoteValue,
-            market.quoteAssetMint.symbol
-          );
-          totalValue += quoteValue;
-
-          let underlyingValue;
-          if (market.underlyingAssetMint.symbol === "USDC") {
-            underlyingValue =
-              market.underlyingAssetPool.balance /
-              10 ** market.underlyingAssetPool.decimals;
-          } else {
-            underlyingValue =
-              (market.underlyingAssetPool.balance /
-                10 ** market.underlyingAssetPool.decimals) *
-              currencyPrice;
-          }
-          console.log(
-            "underlying:",
-            market.underlyingAssetPool,
-            underlyingValue,
-            market.underlyingAssetMint.symbol
-          );
-          console.log("");
-          totalValue += underlyingValue;
-        }
-      }
-      console.log("TOTAL VALUE", totalValue);
+      const totalValue = getTotalTVL(
+        optionMarketContext.singlePairOptionMarkets,
+        currencyPrice
+      );
       setTVL(totalValue);
     }
   }, [currencyPrice, optionMarketContext.singlePairOptionMarkets]);
@@ -170,12 +135,7 @@ export default function App() {
       optionMarketContext.openInterest[activePair]
     ) {
       const openActivePair = optionMarketContext.openInterest[activePair];
-
-      const expiryData = getExpiredData(openActivePair);
-
-      setExpiryData(expiryData);
-      setOIELoading(false);
-
+      // OPEN CALLS & PUTS
       const openCalls = findAllByKey(openActivePair, "calls").reduce(
         (partialSum: any, a: any) => partialSum + a,
         0
@@ -184,47 +144,23 @@ export default function App() {
         (partialSum: any, a: any) => partialSum + a,
         0
       );
+      setOpenCalls(openCalls);
+      setOpenPuts(openPuts);
 
-      let tempData = Object.entries(openActivePair).map(([k, v]) => v);
+      // EXPIRY DATA
+      const formattedOpenActivePair =
+        getFormattedOpenActivePair(openActivePair);
 
-      let tempo: any = {};
-      Object.entries(tempData).forEach(([k, map2]: any) => {
-        Object.entries(map2).forEach(([k2, v2]: any) => {
-          if (k2 in tempo) {
-            tempo[k2].calls += v2.calls;
-            tempo[k2].puts += v2.puts;
-          } else {
-            tempo[k2] = v2;
-          }
-        });
-      });
+      let expiryData = getExpiredData2(formattedOpenActivePair);
+      setExpiryData(expiryData);
+      setOIELoading(false);
 
-      Object.entries(tempo).forEach(([k, v]: any) => {
-        if (v.calls === 0 && v.puts === 0) {
-          delete tempo[k];
-        }
-      });
-
-      tempo = Object.keys(tempo)
-        .sort()
-        .reduce((obj: any, key) => {
-          obj[key] = tempo[key];
-          return obj;
-        }, {});
-
-      let shapedData = Object.keys(tempo).map(function (key) {
-        return {
-          label: key.slice(0, -4),
-          calls: tempo[key].calls,
-          puts: tempo[key].puts,
-        };
-      });
+      // STIKE PRICE DATA
+      const shapedData = getStrikeData(openActivePair);
 
       setShapedData(shapedData);
       setOISPLoading(false);
 
-      setOpenCalls(openCalls);
-      setOpenPuts(openPuts);
       setOICLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -250,8 +186,9 @@ export default function App() {
         optionMarketContext.updateSinglePairOptionMarkets(
           _singlePairOptionMarkets
         );
-        const openInterest: any = await getOpenInterestFromPair(
-          _singlePairOptionMarkets
+        const openInterest: any = await getOpenInterestFromPair2(
+          _singlePairOptionMarkets,
+          pair
         );
         let newOpenInterest = { ...optionMarketContext.openInterest };
         newOpenInterest[pair] = openInterest[pair];
@@ -305,6 +242,7 @@ export default function App() {
           }
         }
       }
+      console.log("filtered orderbook", filteredOrderBook);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionMarketContext.serumMarkets]);
@@ -412,9 +350,30 @@ export default function App() {
       //   await delay(1000);
       // }
     }
+    console.log("SEEEEEEEE------EEEERUM", aggregatedVolume);
+
     setSerumLoadProgress({});
     getDailySerumStats(aggregatedStats);
-    getBiweekVol(aggregatedVolume);
+    if (aggregatedVolume.length > 0) {
+      getBiweekVol(aggregatedVolume);
+    } else {
+      setDVLoading(false);
+      setDTLoading(false);
+      setBiweeklyVolume([
+        {
+          id: "volume",
+          color: "#91ffd7",
+          data: [{ x: "0", y: 0 }],
+        },
+      ]);
+      setBiweeklyTrades([
+        {
+          id: "volume",
+          color: "#91ffd7",
+          data: [{ x: "0", y: 0 }],
+        },
+      ]);
+    }
   };
 
   const getDailySerumStats = async (aggregatedStats: any) => {
@@ -502,6 +461,7 @@ export default function App() {
           data: extractedTrades,
         },
       ];
+      console.log("THHHHEEE VOLUME WEEKS", volumeWeeks);
 
       setBiweeklyVolume(volumeWeeks);
       setBiweeklyTrades(tradesWeeks);
@@ -509,7 +469,7 @@ export default function App() {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: "3000px" }} className="mx-auto">
       <div>
         <Navbar
           title="PsyOptions Dashboard"
@@ -517,166 +477,38 @@ export default function App() {
           setActivePair={setActivePair}
         />
       </div>
-      {serumLoadProgress.curr && (
-        <div className="w-full ">
-          <div className="px-7 mb-3 artboard">
-            <progress
-              className="progress progress-secondary"
-              value={(serumLoadProgress.curr / serumLoadProgress.n) * 100}
-              max="100"
-            ></progress>
-          </div>
-        </div>
-      )}
+      <ProgressBar serumLoadProgress={serumLoadProgress} />
       <div className="w-full pb-5 px-5 ">
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 mx-2">
-          <Stats activePair={activePair} TVL={TVL} />
-        </div>
+        <Stats
+          activePair={activePair}
+          TVL={TVL}
+          openCalls={openCalls}
+          openPuts={openPuts}
+          callMarketCount={callMarketCount}
+          putMarketCount={putMarketCount}
+        />
 
-        <ResponsiveGridLayout
-          className=""
-          breakpoints={breakpoints}
-          cols={cols}
-        >
-          {activePair && (
-            <div
-              className="grid-cell"
-              key="1"
-              data-grid={{ x: 0, y: 0, w: 1, h: 2, static: true }}
-            >
-              <h3 className="grid-header">
-                {capitalizeFirstLetter(pairToCoinGecko[activePair])} Price: $
-                {currencyPrice && currencyPrice}
-              </h3>
+        <ResponsiveGridComponent
+          activePair={activePair}
+          currencyPrice={currencyPrice}
+          historicData={historicData}
+          dataVolume={dataVolume}
+          VMLoading={VMLoading}
+          dataTrades={dataTrades}
+          TMLoading={TMLoading}
+          openCalls={openCalls}
+          openPuts={openPuts}
+          OICLoading={OICLoading}
+          shapedData={shapedData}
+          OISPLoading={OISPLoading}
+          biweeklyVolume={biweeklyVolume}
+          DVLoading={DVLoading}
+          expiryData={expiryData}
+          OIELoading={OIELoading}
+          biweeklyTrades={biweeklyTrades}
+          DTLoading={DTLoading}
+        />
 
-              {historicData ? (
-                <LineChart data={[historicData]} legend="Day" axisLeft="USD" />
-              ) : null}
-            </div>
-          )}
-          <div
-            className="grid-cell"
-            key="2"
-            data-grid={{ x: 1, y: 0, w: 1, h: 2, static: true }}
-          >
-            <h3 className="grid-header">Serum Volume Metrics</h3>
-            {dataVolume && !VMLoading ? (
-              <>
-                <BarChart
-                  data={dataVolume}
-                  keys={["volume"]}
-                  group={"stacked"}
-                  layout="horizontal"
-                />
-              </>
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="3"
-            data-grid={{ x: 2, y: 0, w: 1, h: 2, static: true }}
-          >
-            <h3 className="grid-header">Serum Trade Metrics</h3>
-            {dataTrades && !TMLoading ? (
-              <>
-                <BarChart
-                  data={dataTrades}
-                  keys={["trades"]}
-                  group={"stacked"}
-                  layout="horizontal"
-                />
-              </>
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="4"
-            data-grid={{ x: 3, y: 0, w: 1, h: 2, static: true }}
-          >
-            <h3 className="grid-header">Call/Put Ratio</h3>
-            {openCalls && openPuts && !OICLoading ? (
-              <PieChart data={[openCalls, openPuts]} />
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="5"
-            data-grid={{ x: 0, y: 2, w: 2, h: 3, static: true }}
-          >
-            <h3 className="grid-header">Open Interest by Strike Price</h3>
-            {shapedData && !OISPLoading ? (
-              <BarChart
-                data={shapedData}
-                keys={optionBars}
-                group="grouped"
-                layout="vertical"
-              />
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="6"
-            data-grid={{ x: 2, y: 2, w: 2, h: 3, static: true }}
-          >
-            <h3 className="grid-header">Serum Daily Volume</h3>
-            {biweeklyVolume && !DVLoading ? (
-              <LineChart data={biweeklyVolume} legend="Day" />
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="7"
-            data-grid={{ x: 0, y: 5, w: 1, h: 2 }}
-          >
-            <h3 className="grid-header">Open Interest by Expiry</h3>
-            {expiryData && !OIELoading ? (
-              <BarChart
-                data={expiryData}
-                keys={optionBars}
-                layout="vertical"
-                group="stacked"
-              />
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="8"
-            data-grid={{ x: 1, y: 5, w: 1, h: 2 }}
-          >
-            <h3 className="grid-header">Serum Daily # of Trades</h3>
-            {calendarData && !CDLoading ? (
-              <CalendarChart data={calendarData} />
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          <div
-            className="grid-cell"
-            key="9"
-            data-grid={{ x: 3, y: 5, w: 2, h: 2 }}
-          >
-            <h3 className="grid-header">Serum Daily # of Trades</h3>
-
-            {biweeklyTrades && !DTLoading ? (
-              <LineChart data={biweeklyTrades} legend="Day" />
-            ) : (
-              <Skeleton />
-            )}
-          </div>
-          )
-        </ResponsiveGridLayout>
         {/* <div className="py-5">
           <h3 className="grid-header">OpenOrders</h3>
           <div className="flex">
