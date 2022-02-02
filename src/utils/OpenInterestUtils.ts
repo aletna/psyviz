@@ -28,8 +28,8 @@ export const getOpenInterestFromPair2 = async (
           optionMarketKey: market.optionMarketKey,
           type: getOptionType(marketPair),
           strikePrice,
-          calls,
-          puts,
+          puts: calls, // TODO SWITCH
+          calls: puts, // TODO SWITCH
         });
       }
     }

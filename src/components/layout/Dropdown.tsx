@@ -23,7 +23,7 @@ export default function ActivePairDropdown({
   return (
     <>
       {choices && (
-        <div className="dropdown  z-20 mr-2 font-bold">
+        <div className="dropdown mr-2 font-bold">
           <div
             className="btn font-bold bg-white text-black  hover:bg-gray-300  text-md dropdown-end hover:cursor-pointer px-5"
             onClick={() => setShowDropdown(!showDropdown)}
