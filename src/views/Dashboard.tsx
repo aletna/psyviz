@@ -224,7 +224,14 @@ export default function App() {
     callOrderBookData: any,
     _allCallStrikePrices: any
   ) => {
-    let _currentStrikePrice = Math.min(..._allCallStrikePrices);
+    let  temp=[]
+    for (const i of _allCallStrikePrices){
+      // eslint-disable-next-line eqeqeq
+      if( i != 250000000){
+        temp.push(i)
+      }
+    }
+    let _currentStrikePrice = Math.min(...temp);
 
     let availCallDataAfterSP = [];
     let availExpirations = [];
@@ -270,7 +277,15 @@ export default function App() {
     putOrderBookData: any,
     _allPutStrikePrices: any
   ) => {
-    let _currentStrikePrice = Math.min(..._allPutStrikePrices);
+    // let _currentStrikePrice = Math.min(..._allPutStrikePrices);
+    let  temp=[]
+    for (const i of _allPutStrikePrices){
+      // eslint-disable-next-line eqeqeq
+      if( i != 250000000){
+        temp.push(i)
+      }
+    }
+    let _currentStrikePrice = Math.min(...temp);
 
     let availPutDataAfterSP = [];
     let availExpirations = [];
