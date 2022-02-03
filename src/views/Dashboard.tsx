@@ -68,7 +68,8 @@ export default function App() {
   const [VMLoading, setVMLoading] = useState<boolean>(true);
   const [TMLoading, setTMLoading] = useState<boolean>(true);
   const [putOrderBookLoading, setPutOrderBookLoading] = useState<boolean>(true);
-  const [callOrderBookLoading, setCallOrderBookLoading] = useState<boolean>(true);
+  const [callOrderBookLoading, setCallOrderBookLoading] =
+    useState<boolean>(true);
 
   const program = useProgram();
 
@@ -224,11 +225,11 @@ export default function App() {
     callOrderBookData: any,
     _allCallStrikePrices: any
   ) => {
-    let  temp=[]
-    for (const i of _allCallStrikePrices){
+    let temp = [];
+    for (const i of _allCallStrikePrices) {
       // eslint-disable-next-line eqeqeq
-      if( i != 250000000){
-        temp.push(i)
+      if (i != 250000000) {
+        temp.push(i);
       }
     }
     let _currentStrikePrice = Math.min(...temp);
@@ -259,7 +260,7 @@ export default function App() {
       if (ob.contractSize === _currentContractSize) {
         for (const d of ob.orderBook) {
           initCallData.push({
-            price: d.price,
+            price: parseFloat(d.price).toFixed(2),
             size: d.size, //d.openOrdersSlot
             side: d.side,
           });
@@ -278,11 +279,11 @@ export default function App() {
     _allPutStrikePrices: any
   ) => {
     // let _currentStrikePrice = Math.min(..._allPutStrikePrices);
-    let  temp=[]
-    for (const i of _allPutStrikePrices){
+    let temp = [];
+    for (const i of _allPutStrikePrices) {
       // eslint-disable-next-line eqeqeq
-      if( i != 250000000){
-        temp.push(i)
+      if (i != 250000000) {
+        temp.push(i);
       }
     }
     let _currentStrikePrice = Math.min(...temp);
@@ -315,7 +316,7 @@ export default function App() {
 
         for (const d of ob.orderBook) {
           initPutData.push({
-            price: d.price,
+            price:  parseFloat(d.price).toFixed(2),
             size: d.size, //d.openOrdersSlot
             side: d.side,
           });
