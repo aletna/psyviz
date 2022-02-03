@@ -259,8 +259,25 @@ export default function App() {
     for (const ob of availCallDataAfterExp) {
       if (ob.contractSize === _currentContractSize) {
         for (const d of ob.orderBook) {
+          console.log(
+            d.price,
+            parseInt(d.price),
+            d.price.toString().split(".")
+          );
+          let price = Math.floor(d.price).toString();
+          if (d.price.toString().split(".")[1]) {
+            if (d.price.toString().split(".")[1].length > 1) {
+              price =
+                price + "." + d.price.toString().split(".")[1].substring(0, 2);
+            } else {
+              price =
+                price + "." + d.price.toString().split(".")[1].substring(0, 1);
+            }
+          }
+          console.log(price, parseFloat(price));
+
           initCallData.push({
-            price: parseFloat(d.price).toFixed(2),
+            price: parseFloat(price),
             size: d.size, //d.openOrdersSlot
             side: d.side,
           });
@@ -315,8 +332,25 @@ export default function App() {
         console.log("final ob rto select from", ob);
 
         for (const d of ob.orderBook) {
+          console.log(
+            d.price,
+            parseInt(d.price),
+            d.price.toString().split(".")
+          );
+          let price = Math.floor(d.price).toString();
+          if (d.price.toString().split(".")[1]) {
+            if (d.price.toString().split(".")[1].length > 1) {
+              price =
+                price + "." + d.price.toString().split(".")[1].substring(0, 2);
+            } else {
+              price =
+                price + "." + d.price.toString().split(".")[1].substring(0, 1);
+            }
+          }
+          console.log(price, parseFloat(price));
+
           initPutData.push({
-            price:  parseFloat(d.price).toFixed(2),
+            price: parseFloat(price),
             size: d.size, //d.openOrdersSlot
             side: d.side,
           });
