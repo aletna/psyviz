@@ -27,7 +27,7 @@ import Navbar from "../components/layout/Navbar";
 import ResponsiveGridComponent from "../components/ResponsiveGridComponent";
 import Stats from "../components/Stats/Stats";
 import ProgressBar from "../components/layout/ProgressBar";
-import { otherSide } from "../utils/utils";
+import { hackyFixPrice, otherSide } from "../utils/utils";
 
 export default function App() {
   const [currencyPrice, setCurrencyPrice] = useState<number>();
@@ -225,14 +225,16 @@ export default function App() {
     callOrderBookData: any,
     _allCallStrikePrices: any
   ) => {
-    let temp = [];
-    for (const i of _allCallStrikePrices) {
-      // eslint-disable-next-line eqeqeq
-      if (i != 250000000) {
-        temp.push(i);
-      }
-    }
-    let _currentStrikePrice = Math.min(...temp);
+    // TODO: REMOVE
+    // let temp = [];
+    // for (const i of _allCallStrikePrices) {
+    //   // eslint-disable-next-line eqeqeq
+    //   if (i != 250000000) {
+    //     temp.push(i);
+    //   }
+    // }
+    // let _currentStrikePrice = Math.min(...temp);
+    let _currentStrikePrice = Math.min(..._allCallStrikePrices);
 
     let availCallDataAfterSP = [];
     let availExpirations = [];
@@ -259,25 +261,10 @@ export default function App() {
     for (const ob of availCallDataAfterExp) {
       if (ob.contractSize === _currentContractSize) {
         for (const d of ob.orderBook) {
-          console.log(
-            d.price,
-            parseInt(d.price),
-            d.price.toString().split(".")
-          );
-          let price = Math.floor(d.price).toString();
-          if (d.price.toString().split(".")[1]) {
-            if (d.price.toString().split(".")[1].length > 1) {
-              price =
-                price + "." + d.price.toString().split(".")[1].substring(0, 2);
-            } else {
-              price =
-                price + "." + d.price.toString().split(".")[1].substring(0, 1);
-            }
-          }
-          console.log(price, parseFloat(price));
+          const price = hackyFixPrice(d.price);
 
           initCallData.push({
-            price: parseFloat(price),
+            price: price,
             size: d.size, //d.openOrdersSlot
             side: d.side,
           });
@@ -295,15 +282,16 @@ export default function App() {
     putOrderBookData: any,
     _allPutStrikePrices: any
   ) => {
-    // let _currentStrikePrice = Math.min(..._allPutStrikePrices);
-    let temp = [];
-    for (const i of _allPutStrikePrices) {
-      // eslint-disable-next-line eqeqeq
-      if (i != 250000000) {
-        temp.push(i);
-      }
-    }
-    let _currentStrikePrice = Math.min(...temp);
+    // TODO: REMOVE
+    // let temp = [];
+    // for (const i of _allPutStrikePrices) {
+    //   // eslint-disable-next-line eqeqeq
+    //   if (i != 250000000) {
+    //     temp.push(i);
+    //   }
+    // }
+    // let _currentStrikePrice = Math.min(...temp);
+    let _currentStrikePrice = Math.min(..._allPutStrikePrices);
 
     let availPutDataAfterSP = [];
     let availExpirations = [];
@@ -329,28 +317,11 @@ export default function App() {
     let _currentContractSize = Math.min(...availContractSizes);
     for (const ob of availPutDataAfterExp) {
       if (ob.contractSize === _currentContractSize) {
-        console.log("final ob rto select from", ob);
-
         for (const d of ob.orderBook) {
-          console.log(
-            d.price,
-            parseInt(d.price),
-            d.price.toString().split(".")
-          );
-          let price = Math.floor(d.price).toString();
-          if (d.price.toString().split(".")[1]) {
-            if (d.price.toString().split(".")[1].length > 1) {
-              price =
-                price + "." + d.price.toString().split(".")[1].substring(0, 2);
-            } else {
-              price =
-                price + "." + d.price.toString().split(".")[1].substring(0, 1);
-            }
-          }
-          console.log(price, parseFloat(price));
+          const price = hackyFixPrice(d.price);
 
           initPutData.push({
-            price: parseFloat(price),
+            price: price,
             size: d.size, //d.openOrdersSlot
             side: d.side,
           });
@@ -401,8 +372,9 @@ export default function App() {
       for (const ob of availCallDataAfterExp) {
         if (ob.contractSize === _currentContractSize) {
           for (const d of ob.orderBook) {
+            const price = hackyFixPrice(d.price);
             initCallData.push({
-              price: d.price,
+              price: price,
               size: d.openOrdersSlot,
               side: d.side,
             });
@@ -446,8 +418,9 @@ export default function App() {
       for (const ob of availPutDataAfterExp) {
         if (ob.contractSize === _currentContractSize) {
           for (const d of ob.orderBook) {
+            const price = hackyFixPrice(d.price);
             initPutData.push({
-              price: d.price,
+              price: price,
               size: d.openOrdersSlot,
               side: d.side,
             });

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import { capitalizeFirstLetter, pairToCoinGecko } from "../utils/global";
 import BarChart from "./graphs/BarChart";
@@ -78,9 +77,6 @@ export default function ResponsiveGridComponent({
   callOrderBookLoading,
   putOrderBookLoading,
 }: Props) {
-  useEffect(() => {
-    console.log(fullOrderBookData);
-  }, [fullOrderBookData]);
   return (
     <ResponsiveGridLayout className="" breakpoints={breakpoints} cols={cols}>
       {activePair && (
@@ -227,47 +223,53 @@ export default function ResponsiveGridComponent({
               <div>
                 {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
                 {currentCallStrikePrice && (
-                  <Dropdown
-                    labelType="strikePrice"
-                    currentLabel={currentCallStrikePrice}
-                    handleLabelSelection={handleLabelSelection}
-                    choices={
-                      fullOrderBookData
-                        ? fullOrderBookData["allCallStrikePrices"]
-                        : []
-                    }
-                    optionType="call"
-                    activePair={activePair}
-                  />
+                  <div data-tip="Strike Price" className="tooltip">
+                    <Dropdown
+                      labelType="strikePrice"
+                      currentLabel={currentCallStrikePrice}
+                      handleLabelSelection={handleLabelSelection}
+                      choices={
+                        fullOrderBookData
+                          ? fullOrderBookData["allCallStrikePrices"]
+                          : []
+                      }
+                      optionType="call"
+                      activePair={activePair}
+                    />
+                  </div>
                 )}
 
                 {currentCallExpiration && (
-                  <Dropdown
-                    labelType="expiration"
-                    currentLabel={currentCallExpiration}
-                    handleLabelSelection={handleLabelSelection}
-                    choices={
-                      fullOrderBookData
-                        ? fullOrderBookData["allCallExpirations"]
-                        : []
-                    }
-                    optionType="call"
-                    activePair={activePair}
-                  />
+                  <div data-tip="Expiration Date" className="tooltip">
+                    <Dropdown
+                      labelType="expiration"
+                      currentLabel={currentCallExpiration}
+                      handleLabelSelection={handleLabelSelection}
+                      choices={
+                        fullOrderBookData
+                          ? fullOrderBookData["allCallExpirations"]
+                          : []
+                      }
+                      optionType="call"
+                      activePair={activePair}
+                    />
+                  </div>
                 )}
                 {currentCallContractSize && (
-                  <Dropdown
-                    labelType="contractSize"
-                    currentLabel={currentCallContractSize}
-                    handleLabelSelection={handleLabelSelection}
-                    choices={
-                      fullOrderBookData
-                        ? fullOrderBookData["allCallContractSizes"]
-                        : []
-                    }
-                    optionType="call"
-                    activePair={activePair}
-                  />
+                  <div data-tip="Contract Size" className="tooltip">
+                    <Dropdown
+                      labelType="contractSize"
+                      currentLabel={currentCallContractSize}
+                      handleLabelSelection={handleLabelSelection}
+                      choices={
+                        fullOrderBookData
+                          ? fullOrderBookData["allCallContractSizes"]
+                          : []
+                      }
+                      optionType="call"
+                      activePair={activePair}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -306,46 +308,52 @@ export default function ResponsiveGridComponent({
               <div>
                 {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
                 {currentPutStrikePrice && (
-                  <Dropdown
-                    labelType="strikePrice"
-                    currentLabel={currentPutStrikePrice}
-                    handleLabelSelection={handleLabelSelection}
-                    choices={
-                      fullOrderBookData
-                        ? fullOrderBookData["allPutStrikePrices"]
-                        : []
-                    }
-                    optionType="put"
-                    activePair={activePair}
-                  />
+                  <div data-tip="Strike Price" className="tooltip">
+                    <Dropdown
+                      labelType="strikePrice"
+                      currentLabel={currentPutStrikePrice}
+                      handleLabelSelection={handleLabelSelection}
+                      choices={
+                        fullOrderBookData
+                          ? fullOrderBookData["allPutStrikePrices"]
+                          : []
+                      }
+                      optionType="put"
+                      activePair={activePair}
+                    />
+                  </div>
                 )}
                 {currentPutExpiration && (
-                  <Dropdown
-                    labelType="expiration"
-                    currentLabel={currentPutExpiration}
-                    handleLabelSelection={handleLabelSelection}
-                    choices={
-                      fullOrderBookData
-                        ? fullOrderBookData["allPutExpirations"]
-                        : []
-                    }
-                    optionType="put"
-                    activePair={activePair}
-                  />
+                  <div data-tip="Expiration Date" className="tooltip">
+                    <Dropdown
+                      labelType="expiration"
+                      currentLabel={currentPutExpiration}
+                      handleLabelSelection={handleLabelSelection}
+                      choices={
+                        fullOrderBookData
+                          ? fullOrderBookData["allPutExpirations"]
+                          : []
+                      }
+                      optionType="put"
+                      activePair={activePair}
+                    />
+                  </div>
                 )}
                 {currentPutContractSize && (
-                  <Dropdown
-                    labelType="contractSize"
-                    currentLabel={currentPutContractSize}
-                    handleLabelSelection={handleLabelSelection}
-                    choices={
-                      fullOrderBookData
-                        ? fullOrderBookData["allPutContractSizes"]
-                        : []
-                    }
-                    optionType="put"
-                    activePair={activePair}
-                  />
+                  <div data-tip="Contract Size" className="tooltip">
+                    <Dropdown
+                      labelType="contractSize"
+                      currentLabel={currentPutContractSize}
+                      handleLabelSelection={handleLabelSelection}
+                      choices={
+                        fullOrderBookData
+                          ? fullOrderBookData["allPutContractSizes"]
+                          : []
+                      }
+                      optionType="put"
+                      activePair={activePair}
+                    />
+                  </div>
                 )}
               </div>
             )}

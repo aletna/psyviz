@@ -23,3 +23,14 @@ export function getOptionType(pair: string) {
   }
   return;
 }
+export const hackyFixPrice = (_price: any) => {
+  let price = Math.floor(_price).toString();
+  if (_price.toString().split(".")[1]) {
+    if (_price.toString().split(".")[1].length > 1) {
+      price = price + "." + _price.toString().split(".")[1].substring(0, 2);
+    } else {
+      price = price + "." + _price.toString().split(".")[1].substring(0, 1);
+    }
+  }
+  return parseFloat(price);
+};

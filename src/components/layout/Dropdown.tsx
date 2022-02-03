@@ -25,7 +25,6 @@ export default function ActivePairDropdown({
     setShowDropdown(false);
   };
   useEffect(() => {
-    console.log(choices.length, labelType);
     if (choices.length > 1) {
       setHasOptions(true);
     }
@@ -40,6 +39,9 @@ export default function ActivePairDropdown({
     } else if ("ETH") {
       spDivide = 10 ** 4;
       csDivide = 10 ** 6;
+    } else if ("SOL") {
+      spDivide = 10 ** 1;
+      csDivide = 1; // TODO
     }
     if (spDivide && csDivide) {
       setSpDivide(spDivide);
@@ -54,8 +56,8 @@ export default function ActivePairDropdown({
           <div
             className={`btn font-bold bg-white text-black   text-md dropdown-end  px-5 ${
               hasOptions
-                ? `hover:bg-gray-300hover:cursor-pointer `
-                : `border-none`
+                ? `hover:bg-gray-300 hover:cursor-pointer `
+                : `border-none hover:bg-white hover:cursor-auto`
             }`}
             onClick={() => setShowDropdown(!showDropdown)}
           >
@@ -82,8 +84,10 @@ export default function ActivePairDropdown({
                     displayValue = moment
                       .unix(parseInt(choice))
                       .format("MM/DD");
-                  } else if (labelType === "contractSize") {
-                    displayValue = parseInt(choice);
+                  } else if (labelType === "strikePrice") {
+                    displayValue = parseInt(choice) / spDivide;
+                  } else {
+                    displayValue = parseInt(choice) / csDivide;
                   }
                   return (
                     <li key={key}>
