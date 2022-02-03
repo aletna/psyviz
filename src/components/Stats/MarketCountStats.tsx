@@ -8,9 +8,9 @@ export default function MarketCountStats(props: any) {
           {props.title}
         </div>
         <div className="stat-value">
-          {props.count >= 0 ? props.count : <Skeleton />}
+          {props.count >= 0 ? props.count : <Skeleton small={true} />}
         </div>
-        <div className="stat-desc"></div>
+        <div className={`stat-desc${props.count <= 0 && ` h-6`}`}></div>
       </div>
     </div>
   );

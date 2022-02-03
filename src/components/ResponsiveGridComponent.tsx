@@ -92,7 +92,9 @@ export default function ResponsiveGridComponent({
 
           {historicData ? (
             <LineChart data={[historicData]} legend="Day" axisLeft="USD" />
-          ) : null}
+          ) : (
+            <Skeleton />
+          )}
         </div>
       )}
       <div
@@ -297,7 +299,7 @@ export default function ResponsiveGridComponent({
         key="11"
         data-grid={{ x: 3, y: 7, w: 2, h: 2, static: true }}
       >
-        <div className="flex items-center">
+        <div className="flex flex-column md:flex-row items-center">
           <h3 className="grid-header">
             {activePair.split("/")[0]} Puts - Serum Open Orders
           </h3>
@@ -305,7 +307,7 @@ export default function ResponsiveGridComponent({
             currentPutExpiration &&
             currentPutContractSize &&
             putOrderBookData.length > 0 && (
-              <div>
+              <div className="">
                 {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
                 {currentPutStrikePrice && (
                   <div data-tip="Strike Price" className="tooltip">
