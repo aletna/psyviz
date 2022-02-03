@@ -1,11 +1,12 @@
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 type Props = {
   labelType: string;
   currentLabel: any;
   handleLabelSelection: any;
   choices: any;
   optionType: string;
+  activePair: string;
 };
 export default function ActivePairDropdown({
   labelType,
@@ -13,61 +14,90 @@ export default function ActivePairDropdown({
   handleLabelSelection,
   choices,
   optionType,
+  activePair,
 }: Props) {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [hasOptions, setHasOptions] = useState(false);
+  const [spDivide, setSpDivide] = useState(1);
+  const [csDivide, setCsDivide] = useState(1);
   const handleSelection = (choice: string) => {
     handleLabelSelection(labelType, choice, optionType);
     setShowDropdown(false);
   };
+  useEffect(() => {
+    console.log(choices.length, labelType);
+    if (choices.length > 1) {
+      setHasOptions(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [choices]);
+  useEffect(() => {
+    let curr = activePair.split("/")[0];
+    let spDivide, csDivide;
+    if (curr === "BTC") {
+      spDivide = 10 ** 4;
+      csDivide = 10 ** 5;
+    } else if ("ETH") {
+      spDivide = 10 ** 4;
+      csDivide = 10 ** 6;
+    }
+    if (spDivide && csDivide) {
+      setSpDivide(spDivide);
+      setCsDivide(csDivide);
+    }
+  }, [activePair]);
 
   return (
     <>
       {choices && (
         <div className="dropdown mr-2 font-bold">
           <div
-            className="btn font-bold bg-white text-black  hover:bg-gray-300  text-md dropdown-end hover:cursor-pointer px-5"
+            className={`btn font-bold bg-white text-black   text-md dropdown-end  px-5 ${
+              hasOptions
+                ? `hover:bg-gray-300hover:cursor-pointer `
+                : `border-none`
+            }`}
             onClick={() => setShowDropdown(!showDropdown)}
           >
             {labelType === "expiration"
               ? moment.unix(parseInt(currentLabel)).format("MM/DD")
-              : parseInt(currentLabel)}
+              : labelType === "strikePrice"
+              ? parseInt(currentLabel) / spDivide
+              : parseInt(currentLabel) / csDivide}
           </div>
 
-          {choices &&
-            choices.length > 0 &&
-            choices[0].toString() !== currentLabel.toString() &&
-            showDropdown && (
-              <ul
-                style={{ backgroundColor: "#2a2e37" }}
-                className="p-2 mt-3 text-md text-white  shadow menu dropdown-content-custom bg-base-100 rounded-box w-52"
-              >
-                {choices
-                  .filter((d: any) => {
-                    return d.toString() !== currentLabel.toString();
-                  })
-                  .sort()
-                  .map((choice: any, key: number) => {
-                    let displayValue = choice;
-                    if (labelType === "expiration") {
-                      displayValue = moment
-                        .unix(parseInt(choice))
-                        .format("MM/DD");
-                    } else if (labelType === "contractSize") {
-                      displayValue = parseInt(choice);
-                    }
-                    return (
-                      <li key={key}>
-                        {
-                          // eslint-disable-next-line jsx-a11y/anchor-is-valid
-                          <a onClick={() => handleSelection(choice)}>
-                            {displayValue}
-                          </a>
-                        }
-                      </li>
-                    );
-                  })}
-              </ul>
-            )}
+          {hasOptions && showDropdown && (
+            <ul
+              style={{ backgroundColor: "#2a2e37" }}
+              className="p-2 mt-3 text-md text-white  shadow menu dropdown-content-custom bg-base-100 rounded-box w-52"
+            >
+              {choices
+                .filter((d: any) => {
+                  return d.toString() !== currentLabel.toString();
+                })
+                .sort()
+                .map((choice: any, key: number) => {
+                  let displayValue = choice;
+                  if (labelType === "expiration") {
+                    displayValue = moment
+                      .unix(parseInt(choice))
+                      .format("MM/DD");
+                  } else if (labelType === "contractSize") {
+                    displayValue = parseInt(choice);
+                  }
+                  return (
+                    <li key={key}>
+                      {
+                        // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                        <a onClick={() => handleSelection(choice)}>
+                          {displayValue}
+                        </a>
+                      }
+                    </li>
+                  );
+                })}
+            </ul>
+          )}
         </div>
       )}
     </>

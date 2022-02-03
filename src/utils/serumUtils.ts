@@ -272,40 +272,43 @@ export const getOrderBooksByOptionKey = async (
       const bids = await _serumMarket.loadBids(connection);
       // Full orderbook data
       const orderBook = await getOrderBookData(asks, bids);
-
-      if (market.type === "call") {
-        callResp.push({
-          orderBook,
-          pair: activePair,
-          expiration: parseInt(market.expiration),
-          contractSize: parseInt(market.quoteAmountPerContract),
-          strikePrice: parseInt(market.strikePrice),
-        });
-        if (!allCallContractSizes.includes(market.quoteAmountPerContract)) {
-          allCallContractSizes.push(market.quoteAmountPerContract);
-        }
-        if (!allCallExpirations.includes(market.expiration)) {
-          allCallExpirations.push(market.expiration);
-        }
-        if (!allCallStrikePrices.includes(market.strikePrice)) {
-          allCallStrikePrices.push(market.strikePrice);
-        }
-      } else {
-        putResp.push({
-          orderBook,
-          pair: activePair,
-          expiration: parseInt(market.expiration),
-          contractSize: parseInt(market.underlyingAmountPerContract),
-          strikePrice: parseInt(market.strikePrice),
-        });
-        if (!allPutContractSizes.includes(market.underlyingAmountPerContract)) {
-          allPutContractSizes.push(market.underlyingAmountPerContract);
-        }
-        if (!allPutExpirations.includes(market.expiration)) {
-          allPutExpirations.push(market.expiration);
-        }
-        if (!allPutStrikePrices.includes(market.strikePrice)) {
-          allPutStrikePrices.push(market.strikePrice);
+      if (orderBook.length > 0) {
+        if (market.type === "call") {
+          callResp.push({
+            orderBook,
+            pair: activePair,
+            expiration: parseInt(market.expiration),
+            contractSize: parseInt(market.quoteAmountPerContract),
+            strikePrice: parseInt(market.strikePrice),
+          });
+          if (!allCallContractSizes.includes(market.quoteAmountPerContract)) {
+            allCallContractSizes.push(market.quoteAmountPerContract);
+          }
+          if (!allCallExpirations.includes(market.expiration)) {
+            allCallExpirations.push(market.expiration);
+          }
+          if (!allCallStrikePrices.includes(market.strikePrice)) {
+            allCallStrikePrices.push(market.strikePrice);
+          }
+        } else {
+          putResp.push({
+            orderBook,
+            pair: activePair,
+            expiration: parseInt(market.expiration),
+            contractSize: parseInt(market.underlyingAmountPerContract),
+            strikePrice: parseInt(market.strikePrice),
+          });
+          if (
+            !allPutContractSizes.includes(market.underlyingAmountPerContract)
+          ) {
+            allPutContractSizes.push(market.underlyingAmountPerContract);
+          }
+          if (!allPutExpirations.includes(market.expiration)) {
+            allPutExpirations.push(market.expiration);
+          }
+          if (!allPutStrikePrices.includes(market.strikePrice)) {
+            allPutStrikePrices.push(market.strikePrice);
+          }
         }
       }
     }

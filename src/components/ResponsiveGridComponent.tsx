@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import { capitalizeFirstLetter, pairToCoinGecko } from "../utils/global";
 import BarChart from "./graphs/BarChart";
@@ -42,6 +43,8 @@ type Props = {
   currentPutStrikePrice: any;
   currentPutExpiration: any;
   currentPutContractSize: any;
+  callOrderBookLoading: boolean;
+  putOrderBookLoading: boolean;
 };
 export default function ResponsiveGridComponent({
   activePair,
@@ -72,7 +75,12 @@ export default function ResponsiveGridComponent({
   currentPutStrikePrice,
   currentPutExpiration,
   currentPutContractSize,
+  callOrderBookLoading,
+  putOrderBookLoading,
 }: Props) {
+  useEffect(() => {
+    console.log(fullOrderBookData);
+  }, [fullOrderBookData]);
   return (
     <ResponsiveGridLayout className="" breakpoints={breakpoints} cols={cols}>
       {activePair && (
@@ -214,7 +222,8 @@ export default function ResponsiveGridComponent({
           </h3>
           {currentCallStrikePrice &&
             currentCallExpiration &&
-            currentCallContractSize && (
+            currentCallContractSize &&
+            callOrderBookData.length > 0 && (
               <div>
                 {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
                 {currentCallStrikePrice && (
@@ -228,6 +237,7 @@ export default function ResponsiveGridComponent({
                         : []
                     }
                     optionType="call"
+                    activePair={activePair}
                   />
                 )}
 
@@ -242,6 +252,7 @@ export default function ResponsiveGridComponent({
                         : []
                     }
                     optionType="call"
+                    activePair={activePair}
                   />
                 )}
                 {currentCallContractSize && (
@@ -255,21 +266,26 @@ export default function ResponsiveGridComponent({
                         : []
                     }
                     optionType="call"
+                    activePair={activePair}
                   />
                 )}
               </div>
             )}
         </div>
-        {currentCallStrikePrice &&
-        currentCallExpiration &&
-        currentCallContractSize ? (
-          <BarChart
-            data={callOrderBookData}
-            keys={["buy", "sell"]}
-            layout="vertical"
-            group="stacked"
-            nopadding={true}
-          />
+        {!callOrderBookLoading ? (
+          <>
+            {callOrderBookData.length > 0 ? (
+              <BarChart
+                data={callOrderBookData}
+                keys={["buy", "sell"]}
+                layout="vertical"
+                group="stacked"
+                nopadding={true}
+              />
+            ) : (
+              <div className="px-8">No open asks and bids.</div>
+            )}
+          </>
         ) : (
           <Skeleton />
         )}
@@ -283,9 +299,10 @@ export default function ResponsiveGridComponent({
           <h3 className="grid-header">
             {activePair.split("/")[0]} Puts - Serum Open Orders
           </h3>
-          {currentPutStrikePrice &&
+          {parseInt(currentPutStrikePrice) > 0 &&
             currentPutExpiration &&
-            currentPutContractSize && (
+            currentPutContractSize &&
+            putOrderBookData.length > 0 && (
               <div>
                 {/* <div className={`btn font-bold mr-2 text-md`}>{activePair}</div> */}
                 {currentPutStrikePrice && (
@@ -299,6 +316,7 @@ export default function ResponsiveGridComponent({
                         : []
                     }
                     optionType="put"
+                    activePair={activePair}
                   />
                 )}
                 {currentPutExpiration && (
@@ -312,6 +330,7 @@ export default function ResponsiveGridComponent({
                         : []
                     }
                     optionType="put"
+                    activePair={activePair}
                   />
                 )}
                 {currentPutContractSize && (
@@ -325,21 +344,26 @@ export default function ResponsiveGridComponent({
                         : []
                     }
                     optionType="put"
+                    activePair={activePair}
                   />
                 )}
               </div>
             )}
         </div>
-        {currentPutStrikePrice &&
-        currentPutExpiration &&
-        currentPutContractSize ? (
-          <BarChart
-            data={putOrderBookData}
-            keys={["buy", "sell"]}
-            layout="vertical"
-            group="stacked"
-            nopadding={true}
-          />
+        {!putOrderBookLoading ? (
+          <>
+            {putOrderBookData.length > 0 ? (
+              <BarChart
+                data={putOrderBookData}
+                keys={["buy", "sell"]}
+                layout="vertical"
+                group="stacked"
+                nopadding={true}
+              />
+            ) : (
+              <div className="px-8">No open asks and bids.</div>
+            )}
+          </>
         ) : (
           <Skeleton />
         )}

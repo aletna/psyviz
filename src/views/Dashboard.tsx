@@ -67,6 +67,8 @@ export default function App() {
   const [CDLoading, setCDLoading] = useState<boolean>(true);
   const [VMLoading, setVMLoading] = useState<boolean>(true);
   const [TMLoading, setTMLoading] = useState<boolean>(true);
+  const [putOrderBookLoading, setPutOrderBookLoading] = useState<boolean>(true);
+  const [callOrderBookLoading, setCallOrderBookLoading] = useState<boolean>(true);
 
   const program = useProgram();
 
@@ -205,12 +207,16 @@ export default function App() {
         _fullOrderBookData["call"],
         _fullOrderBookData["allCallStrikePrices"]
       );
+    } else {
+      setCallOrderBookLoading(false);
     }
     if (_fullOrderBookData["put"].length > 0) {
       updatePutOrderBook(
         _fullOrderBookData["put"],
         _fullOrderBookData["allPutStrikePrices"]
       );
+    } else {
+      setPutOrderBookLoading(false);
     }
   };
 
@@ -257,6 +263,7 @@ export default function App() {
     setCurrentCallExpiration(_currentExpiration);
     setCurrentCallContractSize(_currentContractSize);
     getOrderBookData(initCallData, "call");
+    setCallOrderBookLoading(false);
   };
 
   const updatePutOrderBook = (
@@ -289,6 +296,8 @@ export default function App() {
     let _currentContractSize = Math.min(...availContractSizes);
     for (const ob of availPutDataAfterExp) {
       if (ob.contractSize === _currentContractSize) {
+        console.log("final ob rto select from", ob);
+
         for (const d of ob.orderBook) {
           initPutData.push({
             price: d.price,
@@ -303,6 +312,7 @@ export default function App() {
     setCurrentPutExpiration(_currentExpiration);
     setCurrentPutContractSize(_currentContractSize);
     getOrderBookData(initPutData, "put");
+    setPutOrderBookLoading(false);
   };
 
   const handleLabelSelection = (
@@ -310,96 +320,96 @@ export default function App() {
     choice: any,
     optionType: string
   ) => {
-    if (fullOrderBookData) {
-      if (optionType === "call") {
-        let _currentStrikePrice =
-          labelType === "strikePrice" ? choice : currentCallStrikePrice;
+    if (optionType === "call") {
+      let _currentStrikePrice =
+        labelType === "strikePrice" ? choice : currentCallStrikePrice;
 
-        let availCallDataAfterSP = [];
-        let availExpirations = [];
-        let availContractSizes = [];
-        for (const ob of fullOrderBookData["call"]) {
-          if (ob.strikePrice === _currentStrikePrice) {
-            availCallDataAfterSP.push(ob);
-            availExpirations.push(ob.expiration);
-            availContractSizes.push(ob.contractSize);
-          }
+      let availCallDataAfterSP = [];
+      let availExpirations = [];
+      let availContractSizes = [];
+      for (const ob of fullOrderBookData["call"]) {
+        if (ob.strikePrice === _currentStrikePrice) {
+          availCallDataAfterSP.push(ob);
+          availExpirations.push(ob.expiration);
+          availContractSizes.push(ob.contractSize);
         }
-
-        let _currentExpiration =
-          labelType === "expiration" ? choice : currentCallExpiration;
-        let availCallDataAfterExp = [];
-        for (const ob of availCallDataAfterSP) {
-          if (ob.expiration === _currentExpiration) {
-            availCallDataAfterExp.push(ob);
-            availContractSizes.push(ob.contractSize);
-          }
-        }
-
-        let initCallData = [];
-        let _currentContractSize =
-          labelType === "contractSize" ? choice : currentCallContractSize;
-        for (const ob of availCallDataAfterExp) {
-          if (ob.contractSize === _currentContractSize) {
-            for (const d of ob.orderBook) {
-              initCallData.push({
-                price: d.price,
-                size: d.openOrdersSlot,
-                side: d.side,
-              });
-            }
-          }
-        }
-
-        setCurrentCallStrikePrice(_currentStrikePrice);
-        setCurrentCallExpiration(_currentExpiration);
-        setCurrentCallContractSize(_currentContractSize);
-        getOrderBookData(initCallData, "call");
-      } else if (optionType === "put") {
-        let _currentStrikePrice =
-          labelType === "strikePrice" ? choice : currentPutStrikePrice;
-
-        let availPutDataAfterSP = [];
-        let availExpirations = [];
-        let availContractSizes = [];
-        for (const ob of fullOrderBookData["put"]) {
-          if (ob.strikePrice === _currentStrikePrice) {
-            availPutDataAfterSP.push(ob);
-            availExpirations.push(ob.expiration);
-            availContractSizes.push(ob.contractSize);
-          }
-        }
-
-        let _currentExpiration =
-          labelType === "expiration" ? choice : currentPutExpiration;
-        let availPutDataAfterExp = [];
-        for (const ob of availPutDataAfterSP) {
-          if (ob.expiration === _currentExpiration) {
-            availPutDataAfterExp.push(ob);
-            availContractSizes.push(ob.contractSize);
-          }
-        }
-
-        let initPutData = [];
-        let _currentContractSize =
-          labelType === "contractSize" ? choice : currentPutContractSize;
-        for (const ob of availPutDataAfterExp) {
-          if (ob.contractSize === _currentContractSize) {
-            for (const d of ob.orderBook) {
-              initPutData.push({
-                price: d.price,
-                size: d.openOrdersSlot,
-                side: d.side,
-              });
-            }
-          }
-        }
-
-        setCurrentPutStrikePrice(_currentStrikePrice);
-        setCurrentPutExpiration(_currentExpiration);
-        setCurrentPutContractSize(_currentContractSize);
-        getOrderBookData(initPutData, "put");
       }
+
+      let _currentExpiration =
+        labelType === "expiration" ? choice : currentCallExpiration;
+      let availCallDataAfterExp = [];
+      for (const ob of availCallDataAfterSP) {
+        if (ob.expiration === _currentExpiration) {
+          availCallDataAfterExp.push(ob);
+          availContractSizes.push(ob.contractSize);
+        }
+      }
+
+      let initCallData = [];
+      let _currentContractSize =
+        labelType === "contractSize" ? choice : currentCallContractSize;
+      for (const ob of availCallDataAfterExp) {
+        if (ob.contractSize === _currentContractSize) {
+          for (const d of ob.orderBook) {
+            initCallData.push({
+              price: d.price,
+              size: d.openOrdersSlot,
+              side: d.side,
+            });
+          }
+        }
+      }
+
+      setCurrentCallStrikePrice(_currentStrikePrice);
+      setCurrentCallExpiration(_currentExpiration);
+      setCurrentCallContractSize(_currentContractSize);
+      getOrderBookData(initCallData, "call");
+      setCallOrderBookLoading(false);
+    } else if (optionType === "put") {
+      let _currentStrikePrice =
+        labelType === "strikePrice" ? choice : currentPutStrikePrice;
+
+      let availPutDataAfterSP = [];
+      let availExpirations = [];
+      let availContractSizes = [];
+      for (const ob of fullOrderBookData["put"]) {
+        if (ob.strikePrice === _currentStrikePrice) {
+          availPutDataAfterSP.push(ob);
+          availExpirations.push(ob.expiration);
+          availContractSizes.push(ob.contractSize);
+        }
+      }
+
+      let _currentExpiration =
+        labelType === "expiration" ? choice : currentPutExpiration;
+      let availPutDataAfterExp = [];
+      for (const ob of availPutDataAfterSP) {
+        if (ob.expiration === _currentExpiration) {
+          availPutDataAfterExp.push(ob);
+          availContractSizes.push(ob.contractSize);
+        }
+      }
+
+      let initPutData = [];
+      let _currentContractSize =
+        labelType === "contractSize" ? choice : currentPutContractSize;
+      for (const ob of availPutDataAfterExp) {
+        if (ob.contractSize === _currentContractSize) {
+          for (const d of ob.orderBook) {
+            initPutData.push({
+              price: d.price,
+              size: d.openOrdersSlot,
+              side: d.side,
+            });
+          }
+        }
+      }
+
+      setCurrentPutStrikePrice(_currentStrikePrice);
+      setCurrentPutExpiration(_currentExpiration);
+      setCurrentPutContractSize(_currentContractSize);
+      getOrderBookData(initPutData, "put");
+      setPutOrderBookLoading(false);
     }
   };
   const clearOrderBookData = () => {
@@ -411,6 +421,8 @@ export default function App() {
     setCurrentPutStrikePrice(undefined);
     setCurrentPutExpiration(undefined);
     setCurrentPutContractSize(undefined);
+    setPutOrderBookLoading(true);
+    setCallOrderBookLoading(true);
   };
   // UPDATE ACTIVE PAIR
   useEffect(() => {
@@ -766,6 +778,8 @@ export default function App() {
           currentPutStrikePrice={currentPutStrikePrice}
           currentPutExpiration={currentPutExpiration}
           currentPutContractSize={currentPutContractSize}
+          callOrderBookLoading={callOrderBookLoading}
+          putOrderBookLoading={putOrderBookLoading}
         />
       </div>
     </div>
